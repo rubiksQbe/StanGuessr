@@ -1,24 +1,21 @@
 body {
     margin: 0;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     font-family: 'Nunito Sans', sans-serif;
     font-weight: 900;
     font-style: italic;
-    background-image:
-        linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
-        url("../media/stanford.webp");
-    background-position: center;
-    background-size: auto 100vh;
-    background-repeat: no-repeat;
     color: white;
 }
 
 header {
+    position: absolute;
+    top: 0;
+    right: 0;
     display: flex;
     justify-content: flex-end;
     padding: 1rem 1.5rem;
+    z-index: 10;
 }
 
 .login {
@@ -33,9 +30,15 @@ header {
 
 main {
     display: flex;
-    flex: 1;
+    height: calc(100vh - 3.5rem);
     justify-content: center;
     align-items: center;
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
+        url("../media/stanford.webp");
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
 }
 
 .hero {
@@ -47,6 +50,53 @@ main {
 
 .greeting-message {
     font-size: 4rem;
+    margin-bottom: 0;
+}
+
+.instructions {
+    font-size: 1.2rem;
+}
+
+footer {
+    width: 100%;
+}
+
+#leaderboard {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #8C1515;
+    padding-top: 5rem;
+    box-sizing: border-box;
+}
+
+.leaderboard-container {
+    display: flex;
+    gap: 8rem;
+}
+
+.leaderboard-card {
+    text-align: center;
+}
+
+.leaderboard-list {
+    font-size: 1.2rem;
+    line-height: 2.2;
+    text-align: left;
+}
+
+.leaderboard-bar {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    background-color: #8C1515;
+    color: white;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.05em;
 }
 
 button {
@@ -63,4 +113,5 @@ button {
     background-color: #8C1515;
     color: white;
     cursor: pointer;
+    margin-top: .75rem;
 }

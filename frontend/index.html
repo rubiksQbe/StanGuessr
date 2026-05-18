@@ -22,6 +22,35 @@
       </div>
     </main>
 
+    <footer>
+      <button class="leaderboard-bar" onclick="document.getElementById('leaderboard').scrollIntoView({behavior:'smooth'})">Leaderboard &darr;</button>
+    </footer>
+
+    <section id="leaderboard">
+      <div class="leaderboard-container">
+        <div class="leaderboard-card">
+          <h2>This Week</h2>
+          <ol class="leaderboard-list">
+            <li>Player 1 — 4800 pts</li>
+            <li>Player 2 — 4200 pts</li>
+            <li>Player 3 — 3900 pts</li>
+            <li>Player 4 — 3400 pts</li>
+            <li>Player 5 — 3100 pts</li>
+          </ol>
+        </div>
+        <div class="leaderboard-card">
+          <h2>All Time</h2>
+          <ol class="leaderboard-list">
+            <li>Player 1 — 24800 pts</li>
+            <li>Player 2 — 21200 pts</li>
+            <li>Player 3 — 18900 pts</li>
+            <li>Player 4 — 16400 pts</li>
+            <li>Player 5 — 15100 pts</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
     <script src="app.js"></script>
   </body>
 </html>
