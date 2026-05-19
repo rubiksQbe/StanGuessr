@@ -120,3 +120,126 @@ button {
     cursor: pointer;
     margin-top: .75rem;
 }
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-content h1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #8C1515;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Game View */
+#game-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 50;
+}
+
+#street-view {
+    width: 100%;
+    height: 100%;
+}
+
+#guess-map-panel {
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 60;
+    width: min(18rem, calc(100vw - 3rem));
+    height: 13rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    opacity: 0.72;
+    transform-origin: bottom right;
+    transition: width 180ms ease, height 180ms ease, opacity 180ms ease;
+}
+
+#guess-map-panel:hover,
+#guess-map-panel:focus-within,
+#guess-map-panel.is-open {
+    width: min(38rem, calc(100vw - 3rem));
+    height: min(31rem, calc(100vh - 3rem));
+    opacity: 1;
+}
+
+#guess-map {
+    flex: 1;
+    min-height: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0.6rem 1.6rem rgba(0, 0, 0, 0.35);
+}
+
+#guess-button {
+    width: 100%;
+    min-height: 3rem;
+    border: none;
+    border-radius: 999px;
+    background: rgba(28, 28, 28, 0.72);
+    color: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+#guess-map-panel.has-pin #guess-button {
+    background: linear-gradient(#8ed75a, #65b737);
+    color: white;
+}
+
+@media (max-width: 700px) {
+    #guess-map-panel {
+        right: 1rem;
+        bottom: 1rem;
+        width: min(14rem, calc(100vw - 2rem));
+        height: 10.5rem;
+    }
+
+    #guess-map-panel:hover,
+    #guess-map-panel:focus-within,
+    #guess-map-panel.is-open {
+        width: calc(100vw - 2rem);
+        height: min(25rem, calc(100vh - 2rem));
+    }
+}
