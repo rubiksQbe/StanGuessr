@@ -1,6 +1,6 @@
 # StanGuessr
 
-A Stanford location guessing game.
+A Stanford location guessing game inspired by [GeoGuessr](https://www.geoguessr.com/)
 
 Made by Carter, Eric, Tina, and Andrea for CS146J
 
