@@ -59,12 +59,61 @@
       </div>
     </div>
 
+    <!-- Round Tracker (shared between game and results) -->
+    <div id="round-tracker" class="hidden">
+      <div class="round-item" data-round="1">
+        <span class="round-label">R1</span>
+        <span class="round-score">-</span>
+      </div>
+      <div class="round-divider"></div>
+      <div class="round-item" data-round="2">
+        <span class="round-label">R2</span>
+        <span class="round-score">-</span>
+      </div>
+      <div class="round-divider"></div>
+      <div class="round-item" data-round="3">
+        <span class="round-label">R3</span>
+        <span class="round-score">-</span>
+      </div>
+      <div class="round-divider"></div>
+      <div class="round-item" data-round="4">
+        <span class="round-label">R4</span>
+        <span class="round-score">-</span>
+      </div>
+      <div class="round-divider"></div>
+      <div class="round-item" data-round="5">
+        <span class="round-label">R5</span>
+        <span class="round-score">-</span>
+      </div>
+      <div class="round-divider"></div>
+      <div class="round-item total">
+        <span class="round-label">Total</span>
+        <span class="round-score">0</span>
+      </div>
+    </div>
+
     <!-- Game View -->
     <div id="game-view" class="hidden">
       <div id="street-view"></div>
       <div id="guess-map-panel" aria-label="Guess map">
         <div id="guess-map"></div>
         <button id="guess-button" type="button">Place your pin on the map</button>
+      </div>
+    </div>
+
+    <!-- Results View -->
+    <div id="results-view" class="hidden">
+      <div id="results-map"></div>
+      <div class="results-footer">
+        <div class="results-distance-section">
+          <span class="results-distance-value">0</span>
+          <span class="results-distance-label">FROM LOCATION</span>
+        </div>
+        <button class="results-next-button">NEXT</button>
+        <div class="results-score-section">
+          <span class="results-score-value">0</span>
+          <span class="results-score-label">OF 5,000 POINTS</span>
+        </div>
       </div>
     </div>
 
