@@ -58,6 +58,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/location/random", (req, res) => {
+  // next step: make sure there aren't repeat locations in same game
   const randomIndex = Math.floor(Math.random() * stanfordLocations.length);
   const location = stanfordLocations[randomIndex];
   res.json(location);
