@@ -126,6 +126,7 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
   resultsView.classList.remove("hidden");
 
   // Initialize results map
+  // I used AI to help me figure out how to use the google maps API
   resultsMap = new google.maps.Map(document.getElementById("results-map"), {
     center: STANFORD_CENTER,
     zoom: 16,
