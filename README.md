@@ -11,4 +11,4 @@ Made by Carter, Eric, Tina, and Andrea for CS146J
 3. Open your terminal, navigate to the `backend` folder, and run `npm install` as well as `npm start`.
 4. Open `index.html` by double-clicking the file. You should be all set!
 
--# \* Note: You may need to link a billing account to the project in Google Cloud to remove watermarks and negative imaging. This should not charge you though.
+\* Note: You may need to link a billing account to the project in Google Cloud to remove watermarks and negative imaging. This should not charge you though.
