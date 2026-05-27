@@ -19,6 +19,7 @@
     </header>
 
     <main>
+      <!-- Landing Page -->
       <div class="hero">
         <h1 class="greeting-message">Let's explore Stanford!</h1>
         <h2 class="instructions">
@@ -32,6 +33,7 @@
       <button class="leaderboard-bar">Leaderboard ↑</button>
     </footer>
 
+    <!-- Landing Page Leaderboard -->
     <section id="leaderboard">
       <div class="leaderboard-container">
         <div  class="leaderboard-card">
@@ -43,11 +45,6 @@
           <h2>Personal</h2>
           <div id="signin-msg">Sign in to see stats</div>
           <ol id="personal-stats" class="leaderboard-list">
-            <li>Player 1 — 24800 pts</li>
-            <li>Player 2 — 21200 pts</li>
-            <li>Player 3 — 18900 pts</li>
-            <li>Player 4 — 16400 pts</li>
-            <li>Player 5 — 15100 pts</li>
           </ol>
         </div>
       </div>
@@ -105,7 +102,7 @@
       </div>
     </div>
 
-    <!-- Results View -->
+    <!-- In-Round Results View -->
     <div id="results-view" class="hidden">
       <div id="results-map"></div>
       <div class="results-footer">
@@ -120,6 +117,20 @@
         </div>
       </div>
     </div>
+
+    <!-- End Summary -->
+    <section id="end-screen" class="hidden">
+      <div class="end-card">
+        <img src="./media/stanford-seal.png" class="seal" alt="Stanford Seal">
+        <h1>Round Complete</h1>
+        <p id="final-score">Final Score: 0</p>
+        <ul id="round-summary"></ul>
+        <button id="play-again-btn">Play Again</button>
+      </div>
+    </section>
+
+    <!-- Accessibility -->
+    <div id="announcer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     <script src="app.js"></script>
   </body>

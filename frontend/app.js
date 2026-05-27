@@ -1,10 +1,14 @@
 const BASE_API_URL = "http://localhost:3001/api";
 
 const homeScreen = document.querySelector("main");
+const endScreen = document.querySelector("#end-screen");
 const loadingScreen = document.getElementById("loading-screen");
 const gameView = document.getElementById("game-view");
+const resultsView = document.getElementById("results-view");
 const guessMapPanel = document.getElementById("guess-map-panel");
 const guessButton = document.getElementById("guess-button");
+
+const tracker = document.getElementById("round-tracker");
 
 const STANFORD_CENTER = { lat: 37.4275, lng: -122.1697 };
 const MAX_POINTS = 5000;
@@ -22,6 +26,7 @@ let userName = "Alice";  // TODO: signin updates
 const TOTAL_ROUNDS = 5;
 let currentRound = 1;
 let roundScores = [null, null, null, null, null]; // 5 rounds
+let roundDistances = [null, null, null, null, null]
 
 // ==========================================
 // GAME FUNCTIONS
@@ -59,10 +64,33 @@ async function startRound() {
   }
 }
 
-function endRound() {
-  // write score to db
-  addGame(score, user)
+function endGame() {
+  const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0,);
+  // Write score to db
+  // addGame(totalScore, userId);
+
+  // update page
+  document.querySelector("#final-score").textContent = "Score: " + totalScore;
+  const sum_list = document.querySelector("#round-summary")
+  sum_list.textContent = "";
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    let li = document.createElement("li");
+    // Round 1: 4000 pts (500 ft)
+    li.textContent = `Round ${i + 1}: ${roundScores[i]} pts (${roundDistances[i]} ft)`;
+    sum_list.appendChild(li);
+  }
+  
+  // Display end card
+  hideRoundTracker();
+  endScreen.classList.remove("hidden");
 }
+
+// Play again button in end screen card
+document.querySelector("#play-again-btn").addEventListener("click", ()=> {
+  hideResults();
+  endScreen.classList.add("hidden");
+  startGame();
+})
 
 /* Add game to database. */
 function addGame(finalScore, user) {
@@ -114,7 +142,6 @@ function resetGame() {
 // ==========================================
 
 function updateRoundTracker() {
-  const tracker = document.getElementById("round-tracker");
   const roundItems = tracker.querySelectorAll(".round-item[data-round]");
 
   roundItems.forEach((item, index) => {
@@ -156,7 +183,6 @@ function hideRoundTracker() {
 // ==========================================
 
 function showResults(guessPosition, actualPosition, score, distanceMeters) {
-  const resultsView = document.getElementById("results-view");
   const distanceElement = resultsView.querySelector(".results-distance-value");
   const scoreElement = resultsView.querySelector(".results-score-value");
 
@@ -396,6 +422,9 @@ function formatDistance(meters) {
   const feet = meters * 3.28084;
   const miles = meters / 1609.344;
 
+  // Record distance for current round
+  roundDistances[currentRound - 1] = Math.round(feet);
+
   if (miles < 0.1) {
     return `${Math.round(feet)} ft`;
   } else {
@@ -469,6 +498,7 @@ function pullPersonalStats() {
     .catch(error => console.log(error));
 }
 
+/* Game logic. */
 document.addEventListener("DOMContentLoaded", () => {
   const playButton = document.querySelector(".play-button");
   pullPersonalStats();  // for leaderboard
@@ -507,25 +537,22 @@ document.addEventListener("DOMContentLoaded", () => {
     showResults(guessPosition, actualPosition, score, distance);
   });
 
+  /* Results page next button */
   document
     .querySelector(".results-next-button")
     .addEventListener("click", () => {
-      hideResults();
 
       if (currentRound < TOTAL_ROUNDS) {
         // Advance to next round
+        hideResults();
         currentRound++;
         startRound();
       } else {
         // Game over - start new game
-        const totalScore = roundScores.reduce(
-          (sum, score) => sum + (score || 0),
-          0,
-        );
         // TODO: display end game summary
-        // endRound();
-        alert("Total Score: " + totalScore + "\nPlay Again?");
-        startGame();
+        endGame();
+        //alert("Total Score: " + totalScore + "\nPlay Again?");
+        //startGame();
       }
     });
 
