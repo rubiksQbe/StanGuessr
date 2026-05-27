@@ -21,7 +21,7 @@ header {
   right: 0;
   display: flex;
   justify-content: flex-end;
-  padding: 1rem 1.5rem;
+  padding: 2rem 1.5rem;
   z-index: 10;
   background: linear-gradient(rgb(0, 0, 0, 1), rgb(0, 0, 0, 0));
 }
@@ -60,15 +60,16 @@ main {
 .greeting-message {
   font-family: "Source Serif 4", serif;
   font-optical-sizing: auto;
-  font-weight: 600;
-  font-size: 4rem;
+  font-weight: 700;
+  font-size: 6rem;
   margin-bottom: 0;
 }
 
 .instructions {
-  font-size: 1.2rem;
+  font-size: 2rem;
   font-optical-sizing: auto;
   font-weight: 400;
+  margin-top: 0;
 }
 
 footer {
