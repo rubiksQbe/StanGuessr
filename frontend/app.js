@@ -523,7 +523,7 @@ document.addEventListener("DOMContentLoaded", () => {
           0,
         );
         // TODO: display end game summary
-        endRound();
+        // endRound();
         alert("Total Score: " + totalScore + "\nPlay Again?");
         startGame();
       }
