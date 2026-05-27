@@ -1,14 +1,28 @@
-const express = require("express");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
+import express from "express";
+import cors from "cors";
+import fs from "fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { addUser, addGameScore, getGlobalTopScores, getUserTopScores } from "./db.js";
+
 
 const app = express();
 const PORT = 3001;
 
+const MAPS_CONFIG_URL = "http://localhost:3001/api/config/maps";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 loadEnvFile(path.join(__dirname, ".env"));
 
+// -- Install middleware --
+// CORS middleware
 app.use(cors());
+// JSON body parser
+app.use(express.json());
+// URL-encoded body parser (for Form Data)
+app.use(express.urlencoded({ extended: true }));
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -43,14 +57,14 @@ function loadEnvFile(filePath) {
 }
 
 const stanfordLocations = [
-  { lat: 37.4268, lng: -122.1692 }, // Main Quad
-  { lat: 37.4267, lng: -122.1672 }, // Hoover Tower
-  { lat: 37.43, lng: -122.17 }, // The Oval
-  { lat: 37.432, lng: -122.175 }, // Palm Drive
-  { lat: 37.4244, lng: -122.1708 }, // White Plaza
-  { lat: 37.4245, lng: -122.1657 }, // Engineering Quad
-  { lat: 37.4265, lng: -122.1675 }, // Green Library
-  { lat: 37.4322, lng: -122.1711 }, // Cantor Arts Center
+  { lat: 37.4268, lng: -122.1692, name: "Main Quad" },
+  { lat: 37.4267, lng: -122.1672, name: "Hoover Tower" },
+  { lat: 37.43, lng: -122.17, name: "The Oval" },
+  { lat: 37.432, lng: -122.175, name: "Palm Drive" },
+  { lat: 37.4244, lng: -122.1708, name: "White Plaza" }, 
+  { lat: 37.4245, lng: -122.1657, name: "Engineering Quad" },
+  { lat: 37.4265, lng: -122.1675, name: "Green Library" }, 
+  { lat: 37.4322, lng: -122.1711, name: "Cantor Arts Center" },
 ];
 
 app.get("/", (req, res) => {
@@ -73,6 +87,59 @@ app.get("/api/config/maps", (req, res) => {
   }
 
   res.json({ apiKey });
+});
+
+// ==========================================
+// DB CALLS
+// ==========================================
+
+// Retrieving global stats
+app.get("/api/leaderboard/:limit", (req, res) => {
+  const limit = Number(req.params.limit);
+  const leaders = getGlobalTopScores(limit);
+
+  if (!leaders) {
+    return res.status(404).json({ error: `Limit with ${limit} caused error`})
+  }
+
+  res.json(leaders);
+});
+
+// Retrieving personal stats
+app.get("/api/users/:userid/scores/:limit", (req, res) => {
+  const userid = Number(req.params.userid);
+  const limit = Number(req.params.limit);
+  const topScores = getUserTopScores(userid, limit);
+
+  if (!topScores) {
+    return res.status(404).json({ error: `User with id ${id} and limit ${limit} not found` });
+  }
+
+  res.json(topScores);
+});
+
+// Adding game data
+app.post("/api/end-game", (req,res) => {
+  const { score, userid } = req.body;
+
+  if (!score || !userid) {
+    return res.status(400).json({ error: "Missing required fields: score, userid" });
+  }
+
+  const newGame = addGameScore(score, userid);
+  res.status(201).json(newGame);
+});
+
+// Adding user data
+app.post("/api/users", (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: "Missing required fields: name" });
+  }
+
+  const newUser = addUser(name);
+  res.status(201).json(newUser);
 });
 
 app.listen(PORT, () => {

@@ -1,5 +1,4 @@
-const API_URL = "http://localhost:3001/api/location/random";
-const MAPS_CONFIG_URL = "http://localhost:3001/api/config/maps";
+const BASE_API_URL = "http://localhost:3001/api";
 
 const homeScreen = document.querySelector("main");
 const loadingScreen = document.getElementById("loading-screen");
@@ -16,53 +15,103 @@ let guessMarker;
 let currentLocation;
 let googleMapsPromise;
 let resultsMap;
+let userId = 1;
+let userName = "Alice";  // TODO: signin updates
 
-// Round tracking
+/* Round tracking. */
 const TOTAL_ROUNDS = 5;
 let currentRound = 1;
 let roundScores = [null, null, null, null, null]; // 5 rounds
 
-/**
- * Calculate distance between two points using Haversine formula
- * (I Used AI for this function apparently its a good one for this kinda thing)
- */
-function calculateDistance(lat1, lng1, lat2, lng2) {
-  const R = 6371000; // Earth's radius in meters
-  const toRad = (deg) => deg * (Math.PI / 180);
+// ==========================================
+// GAME FUNCTIONS
+// ==========================================
 
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
+function startGame() {
+  resetGame();
+  startRound();
 }
 
-/**
- * Calculate score based on distance from target
- */
-function calculateScore(distanceMeters) {
-  const score = MAX_POINTS * Math.exp(-distanceMeters / DECAY_CONSTANT);
-  return Math.round(score);
+function showGame() {
+  loadingScreen.classList.add("hidden");
+  gameView.classList.remove("hidden");
 }
 
-function formatDistance(meters) {
-  const feet = meters * 3.28084;
-  const miles = meters / 1609.344;
+async function startRound() {
+  showLoading();
 
-  if (miles < 0.1) {
-    return `${Math.round(feet)} ft`;
-  } else {
-    return `${miles.toFixed(2)} mi`;
+  try {
+    const response = await fetch(BASE_API_URL + "/location/random");
+    const location = await response.json();
+    currentLocation = location;
+
+    showGame();
+    showRoundTracker();
+    updateRoundTracker();
+    await loadGoogleMaps();
+    initStreetView(location.lat, location.lng);
+    initGuessMap();
+    resetGuess();
+  } catch (error) {
+    console.error("Failed to start round:", error);
+    alert("Failed to load location. Please try again.");
+    location.reload();
   }
 }
+
+function endRound() {
+  // write score to db
+  addGame(score, user)
+}
+
+/* Add game to database. */
+function addGame(finalScore, user) {
+  
+  fetch(BASE_API_URL + "/end-game", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ userid: user, score: finalScore })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("Successfully added game:", data);
+  })
+  .catch(error => console.log(error));
+}
+
+/* Add user to database. */
+function addUser(userName) {
+  let newUser = fetch(BASE_API_URL + "/users", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name: userName }) 
+  })
+    .then(response => response.json())
+    .then(data => {
+      user = data.userid;
+      userName = data.name;
+      console.log("Successfully added user:", data);
+    })
+    .catch(error => console.log(error));
+}
+
+function showLoading() {
+  homeScreen.classList.add("hidden");
+  document.querySelector("header").classList.add("hidden");
+  document.querySelector("footer").classList.add("hidden");
+  document.getElementById("leaderboard").classList.add("hidden");
+  loadingScreen.classList.remove("hidden");
+}
+
+function resetGame() {
+  currentRound = 1;
+  roundScores = [null, null, null, null, null];
+  updateRoundTracker();
+}
+
+// ==========================================
+// IN GAME ROUND TRACKER
+// ==========================================
 
 function updateRoundTracker() {
   const tracker = document.getElementById("round-tracker");
@@ -102,11 +151,9 @@ function hideRoundTracker() {
   document.getElementById("round-tracker").classList.add("hidden");
 }
 
-function resetGame() {
-  currentRound = 1;
-  roundScores = [null, null, null, null, null];
-  updateRoundTracker();
-}
+// ==========================================
+// GUESS RESULTS
+// ==========================================
 
 function showResults(guessPosition, actualPosition, score, distanceMeters) {
   const resultsView = document.getElementById("results-view");
@@ -197,18 +244,9 @@ function hideResults() {
   document.getElementById("results-view").classList.add("hidden");
 }
 
-function showLoading() {
-  homeScreen.classList.add("hidden");
-  document.querySelector("header").classList.add("hidden");
-  document.querySelector("footer").classList.add("hidden");
-  document.getElementById("leaderboard").classList.add("hidden");
-  loadingScreen.classList.remove("hidden");
-}
-
-function showGame() {
-  loadingScreen.classList.add("hidden");
-  gameView.classList.remove("hidden");
-}
+// ==========================================
+// GUESSING MAP DISPLAY
+// ==========================================
 
 function initStreetView(lat, lng) {
   new google.maps.StreetViewPanorama(document.getElementById("street-view"), {
@@ -234,7 +272,7 @@ async function loadGoogleMaps() {
     return googleMapsPromise;
   }
 
-  googleMapsPromise = fetch(MAPS_CONFIG_URL)
+  googleMapsPromise = fetch(BASE_API_URL + "/config/maps")
     .then((response) => {
       if (!response.ok) {
         throw new Error("Google Maps API key is not configured.");
@@ -321,35 +359,120 @@ function collapseGuessMap() {
   guessMapPanel.classList.remove("is-open");
 }
 
-async function startRound() {
-  showLoading();
+// ==========================================
+// SCORING
+// ==========================================
 
-  try {
-    const response = await fetch(API_URL);
-    const location = await response.json();
-    currentLocation = location;
+/* Calculate distance between two points using Haversine formula
+   (I Used AI for this function apparently its a good one for this kinda thing) */
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // Earth's radius in meters
+  const toRad = (deg) => deg * (Math.PI / 180);
 
-    showGame();
-    showRoundTracker();
-    updateRoundTracker();
-    await loadGoogleMaps();
-    initStreetView(location.lat, location.lng);
-    initGuessMap();
-    resetGuess();
-  } catch (error) {
-    console.error("Failed to start round:", error);
-    alert("Failed to load location. Please try again.");
-    location.reload();
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+/**
+ * Calculate score based on distance from target
+ */
+function calculateScore(distanceMeters) {
+  const score = MAX_POINTS * Math.exp(-distanceMeters / DECAY_CONSTANT);
+  return Math.round(score);
+}
+
+function formatDistance(meters) {
+  const feet = meters * 3.28084;
+  const miles = meters / 1609.344;
+
+  if (miles < 0.1) {
+    return `${Math.round(feet)} ft`;
+  } else {
+    return `${miles.toFixed(2)} mi`;
   }
 }
 
-function startGame() {
-  resetGame();
-  startRound();
+// ==========================================
+// MAIN PAGE
+// ==========================================
+
+const leadboardBtn = document.querySelector(".leaderboard-bar");
+const leaderboard = document.querySelector("#leaderboard");
+const globalStats = document.querySelector("#global-stats");
+const personalStats = document.querySelector("#personal-stats");
+const signMsg = document.querySelector("#signin-msg");
+const limit = 5;
+let isAtTop = true;
+
+leadboardBtn.addEventListener("click", toggleLeadboard);
+
+/* Raise and lower leaderboard on main page. */ 
+function toggleLeadboard() {
+  if (isAtTop) {
+    leaderboard.scrollIntoView({behavior: 'smooth'});
+    leadboardBtn.textContent = "Leaderboard ↓";
+    isAtTop = false;
+  } else {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    leadboardBtn.textContent = "Leaderboard ↑";
+    isAtTop = true;
+  }
+}
+
+/* Populate leaderboard stats. */ 
+function pullGlobalStats() {
+  fetch(BASE_API_URL + `/leaderboard/${limit}`)
+    .then(response => response.json())
+    .then(data => {
+      globalStats.replaceChildren();
+      data.forEach((entry, i) => {
+        let li = document.createElement("li");
+        li.textContent = `${data[i].name} - ${data[i].score} pts`
+        globalStats.appendChild(li);
+      });
+    })
+    .catch(error => console.log(error));
+}
+
+/* Populate personal stats. */ 
+function pullPersonalStats() {
+  personalStats.replaceChildren();
+  // not signed in.
+  if (userId < 1) {
+    return;
+  }
+
+  fetch(BASE_API_URL + `/users/${userId}/scores/${limit}`)
+    .then(response => response.json())
+    .then(data => {
+      data.forEach((entry, i) => {
+        let li = document.createElement("li");
+        li.textContent = `${userName} - ${data[i].score} pts`
+        personalStats.appendChild(li);
+      });
+      signMsg.remove();
+    })
+    .catch(error => console.log(error));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const playButton = document.querySelector(".play-button");
+  pullPersonalStats();  // for leaderboard
+  pullGlobalStats();
   playButton.addEventListener("click", startGame);
   guessMapPanel.addEventListener("mouseenter", resizeGuessMap);
   guessMapPanel.addEventListener("focusin", resizeGuessMap);
@@ -399,6 +522,8 @@ document.addEventListener("DOMContentLoaded", () => {
           (sum, score) => sum + (score || 0),
           0,
         );
+        // TODO: display end game summary
+        endRound();
         alert("Total Score: " + totalScore + "\nPlay Again?");
         startGame();
       }
