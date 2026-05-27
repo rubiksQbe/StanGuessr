@@ -216,7 +216,7 @@ ol li {
   width: 50px;
   height: 50px;
   border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top-color: #8c1515;
+  border-top-color: #8b1513;
   border-radius: 50%;
   margin: 0 auto;
   animation: spin 1s linear infinite;
@@ -287,10 +287,12 @@ ol li {
   box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.3);
   cursor: pointer;
   text-transform: uppercase;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 #guess-map-panel.has-pin #guess-button {
-  background: linear-gradient(#8c1515, #5e0f0f);
+  background: #b0060e;
   color: white;
 }
 
@@ -333,14 +335,14 @@ ol li {
 }
 
 .round-item.current {
-  background: rgba(140, 21, 21, 0.12);
+  background: rgba(139, 21, 19, 0.12);
   border-radius: 0.4rem;
   margin: 0 0.2rem;
   padding: 0.4rem 0.5rem;
 }
 
 .round-item.completed .round-label {
-  color: #8c1515;
+  color: #8b1513;
 }
 
 .round-item.completed .round-score {
@@ -348,7 +350,7 @@ ol li {
 }
 
 .round-item.current .round-label {
-  color: #8c1515;
+  color: #8b1513;
 }
 
 .round-item.current .round-score {
@@ -356,7 +358,7 @@ ol li {
 }
 
 .round-item.total .round-label {
-  color: #8c1515;
+  color: #8b1513;
 }
 
 .round-item.total .round-score {
@@ -428,7 +430,7 @@ ol li {
   gap: 3rem;
   padding: 1.2rem 2rem;
   background: white;
-  border-top: 3px solid #8c1515;
+  border-top: 3px solid #8b1513;
 }
 
 .results-distance-section,
@@ -441,7 +443,7 @@ ol li {
 
 .results-distance-value {
   font-size: 2.2rem;
-  color: #8c1515;
+  color: #8b1513;
 }
 
 .results-distance-label {
@@ -452,7 +454,7 @@ ol li {
 
 .results-score-value {
   font-size: 2.2rem;
-  color: #8c1515;
+  color: #8b1513;
 }
 
 .results-score-label {
@@ -466,7 +468,7 @@ ol li {
   font-size: 1.3rem;
   border-radius: 999px;
   border: none;
-  background: linear-gradient(#8c1515, #5e0f0f);
+  background: #b0060e;
   color: white;
   cursor: pointer;
   text-transform: uppercase;

@@ -341,7 +341,7 @@ function resetGuess() {
 
   guessMapPanel.classList.remove("is-open");
   guessMapPanel.classList.remove("has-pin");
-  guessButton.textContent = "Place your pin on the map";
+  guessButton.textContent = "Place pin on map";
 }
 
 function resizeGuessMap() {
