@@ -15,37 +15,41 @@
   </head>
   <body>
     <header>
-      <button class="login">Login</button>
+      <section class="nav-bar">
+        <h1 class="logo">StanGuessr</h1>
+        <section id="nav-buttons">
+          <button id="signup" class="nav-button">Sign up</button>
+          <button id="login" class="nav-button">Login</button>
+        </section>
+      </section>
     </header>
 
     <main>
       <!-- Landing Page -->
       <div class="hero">
-        <h1 class="greeting-message">Let's explore Stanford!</h1>
-        <h2 class="instructions">
-          Play 5 rounds and gain points to climb the leaderboard
-        </h2>
-        <button class="play-button">Play Now</button>
+        <h2 class="greeting-message">Explore Stanford</h2>
+        <h3 class="instructions">
+          Get dropped somewhere on campus and figure out where you are!
+        </h3>
+        <button class="play-button">Play now</button>
       </div>
     </main>
 
     <footer>
-      <button class="leaderboard-bar">Leaderboard ↑</button>
+      <button class="leaderboard-bar">Leaderboard &MediumSpace;↓</button>
     </footer>
 
     <!-- Landing Page Leaderboard -->
     <section id="leaderboard">
       <div class="leaderboard-container">
-        <div  class="leaderboard-card">
-          <h2>Global</h2>
-          <ol id="global-stats" class="leaderboard-list">
-          </ol>
+        <div class="leaderboard-card">
+          <h3>GLOBAL</h3>
+          <ol id="global-stats" class="leaderboard-list"></ol>
         </div>
         <div class="leaderboard-card">
-          <h2>Personal</h2>
+          <h3>PERSONAL</h3>
           <div id="signin-msg">Sign in to see stats</div>
-          <ol id="personal-stats" class="leaderboard-list">
-          </ol>
+          <ol id="personal-stats" class="leaderboard-list"></ol>
         </div>
       </div>
     </section>
@@ -96,9 +100,7 @@
       <div id="street-view"></div>
       <div id="guess-map-panel" aria-label="Guess map">
         <div id="guess-map"></div>
-        <button id="guess-button" type="button">
-          Place your pin on the map
-        </button>
+        <button id="guess-button" type="button">Place pin on map</button>
       </div>
     </div>
 

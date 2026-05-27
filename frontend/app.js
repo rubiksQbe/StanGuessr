@@ -20,7 +20,7 @@ let currentLocation;
 let googleMapsPromise;
 let resultsMap;
 let userId = 1;
-let userName = "Alice";  // TODO: signin updates
+let userName = "Alice"; // TODO: signin updates
 
 /* Round tracking. */
 const TOTAL_ROUNDS = 5;
@@ -94,33 +94,32 @@ document.querySelector("#play-again-btn").addEventListener("click", ()=> {
 
 /* Add game to database. */
 function addGame(finalScore, user) {
-  
   fetch(BASE_API_URL + "/end-game", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ userid: user, score: finalScore })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userid: user, score: finalScore }),
   })
-  .then(response => response.json())
-  .then(data => {
-    console.log("Successfully added game:", data);
-  })
-  .catch(error => console.log(error));
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Successfully added game:", data);
+    })
+    .catch((error) => console.log(error));
 }
 
 /* Add user to database. */
 function addUser(userName) {
   let newUser = fetch(BASE_API_URL + "/users", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name: userName }) 
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: userName }),
   })
-    .then(response => response.json())
-    .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
       user = data.userid;
       userName = data.name;
       console.log("Successfully added user:", data);
     })
-    .catch(error => console.log(error));
+    .catch((error) => console.log(error));
 }
 
 function showLoading() {
@@ -368,7 +367,7 @@ function resetGuess() {
 
   guessMapPanel.classList.remove("is-open");
   guessMapPanel.classList.remove("has-pin");
-  guessButton.textContent = "Place your pin on the map";
+  guessButton.textContent = "Place pin on map";
 }
 
 function resizeGuessMap() {
@@ -446,38 +445,38 @@ let isAtTop = true;
 
 leadboardBtn.addEventListener("click", toggleLeadboard);
 
-/* Raise and lower leaderboard on main page. */ 
+/* Raise and lower leaderboard on main page. */
 function toggleLeadboard() {
   if (isAtTop) {
-    leaderboard.scrollIntoView({behavior: 'smooth'});
+    leaderboard.scrollIntoView({ behavior: "smooth" });
     leadboardBtn.textContent = "Leaderboard ↓";
     isAtTop = false;
   } else {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
     leadboardBtn.textContent = "Leaderboard ↑";
     isAtTop = true;
   }
 }
 
-/* Populate leaderboard stats. */ 
+/* Populate leaderboard stats. */
 function pullGlobalStats() {
   fetch(BASE_API_URL + `/leaderboard/${limit}`)
-    .then(response => response.json())
-    .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
       globalStats.replaceChildren();
       data.forEach((entry, i) => {
         let li = document.createElement("li");
-        li.textContent = `${data[i].name} - ${data[i].score} pts`
+        li.textContent = `${data[i].name} — ${data[i].score} pts`;
         globalStats.appendChild(li);
       });
     })
-    .catch(error => console.log(error));
+    .catch((error) => console.log(error));
 }
 
-/* Populate personal stats. */ 
+/* Populate personal stats. */
 function pullPersonalStats() {
   personalStats.replaceChildren();
   // not signed in.
@@ -486,22 +485,22 @@ function pullPersonalStats() {
   }
 
   fetch(BASE_API_URL + `/users/${userId}/scores/${limit}`)
-    .then(response => response.json())
-    .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
       data.forEach((entry, i) => {
         let li = document.createElement("li");
-        li.textContent = `${userName} - ${data[i].score} pts`
+        li.textContent = `${userName} — ${data[i].score} pts`;
         personalStats.appendChild(li);
       });
       signMsg.remove();
     })
-    .catch(error => console.log(error));
+    .catch((error) => console.log(error));
 }
 
 /* Game logic. */
 document.addEventListener("DOMContentLoaded", () => {
   const playButton = document.querySelector(".play-button");
-  pullPersonalStats();  // for leaderboard
+  pullPersonalStats(); // for leaderboard
   pullGlobalStats();
   playButton.addEventListener("click", startGame);
   guessMapPanel.addEventListener("mouseenter", resizeGuessMap);
