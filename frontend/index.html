@@ -15,40 +15,39 @@
   </head>
   <body>
     <header>
-      <button class="login">Login</button>
+      <section class="nav-bar">
+        <h1 class="logo">StanGuessr</h1>
+        <section id="nav-buttons">
+          <button id="signup" class="nav-button">Sign up</button>
+          <button id="login" class="nav-button">Login</button>
+        </section>
+      </section>
     </header>
 
     <main>
       <div class="hero">
-        <h1 class="greeting-message">Explore Stanford</h1>
-        <h2 class="instructions">
+        <h2 class="greeting-message">Explore Stanford</h2>
+        <h3 class="instructions">
           Get dropped somewhere on campus and figure out where you are!
-        </h2>
+        </h3>
         <button class="play-button">Play now</button>
       </div>
     </main>
 
     <footer>
-      <button class="leaderboard-bar">Leaderboard ↑</button>
+      <button class="leaderboard-bar">Leaderboard &MediumSpace;↓</button>
     </footer>
 
     <section id="leaderboard">
       <div class="leaderboard-container">
-        <div  class="leaderboard-card">
-          <h2>Global</h2>
-          <ol id="global-stats" class="leaderboard-list">
-          </ol>
+        <div class="leaderboard-card">
+          <h3>GLOBAL</h3>
+          <ol id="global-stats" class="leaderboard-list"></ol>
         </div>
         <div class="leaderboard-card">
-          <h2>Personal</h2>
+          <h3>PERSONAL</h3>
           <div id="signin-msg">Sign in to see stats</div>
-          <ol id="personal-stats" class="leaderboard-list">
-            <li>Player 1 — 24800 pts</li>
-            <li>Player 2 — 21200 pts</li>
-            <li>Player 3 — 18900 pts</li>
-            <li>Player 4 — 16400 pts</li>
-            <li>Player 5 — 15100 pts</li>
-          </ol>
+          <ol id="personal-stats" class="leaderboard-list"></ol>
         </div>
       </div>
     </section>
