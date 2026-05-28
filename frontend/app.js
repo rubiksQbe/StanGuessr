@@ -19,8 +19,12 @@ let guessMarker;
 let currentLocation;
 let googleMapsPromise;
 let resultsMap;
-let userId = 1;
-let userName = "Alice"; // TODO: signin updates
+/* Dummy Account [TO BE REMOVED]. */
+// let userId = 1;
+// let userName = "Alice"; // TODO: signin updates
+/*                                */
+let userId = null;
+let userName = "";
 
 /* Round tracking. */
 const TOTAL_ROUNDS = 5;
@@ -67,7 +71,9 @@ async function startRound() {
 function endGame() {
   const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0,);
   // Write score to db
-  // addGame(totalScore, userId);
+  if (userId) {
+  addGame(totalScore, userId);
+}
 
   // update page
   document.querySelector("#final-score").textContent = "Score: " + totalScore;
@@ -107,19 +113,64 @@ function addGame(finalScore, user) {
 }
 
 /* Add user to database. */
-function addUser(userName) {
-  let newUser = fetch(BASE_API_URL + "/users", {
+// function addUser(userName) {
+//   let newUser = fetch(BASE_API_URL + "/users", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ name: userName }),
+//   })
+//     .then((response) => response.json())
+//     .then((data) => {
+//       user = data.userid;
+//       userName = data.name;
+//       console.log("Successfully added user:", data);
+//     })
+//     .catch((error) => console.log(error));
+// }
+async function signup(name) {
+  const response = await fetch(BASE_API_URL + "/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: userName }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      user = data.userid;
-      userName = data.name;
-      console.log("Successfully added user:", data);
-    })
-    .catch((error) => console.log(error));
+    body: JSON.stringify({ name }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error);
+  }
+
+  userId = data.userid;
+  userName = data.name;
+}
+
+async function login(name) {
+  const response = await fetch(BASE_API_URL + "/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error);
+  }
+
+  userId = data.userid;
+  userName = data.name;
+}
+
+function updateWelcomeMessage() {
+  const welcomeMsg = document.getElementById("welcome-msg");
+
+  if (userId && userName) {
+    welcomeMsg.textContent = `Welcome, ${userName}!`;
+    signMsg.textContent = "";
+  } else {
+    welcomeMsg.textContent = "";
+    signMsg.textContent = "Sign in to see stats";
+  }
 }
 
 function showLoading() {
@@ -480,7 +531,8 @@ function pullGlobalStats() {
 function pullPersonalStats() {
   personalStats.replaceChildren();
   // not signed in.
-  if (userId < 1) {
+  if (!userId) {
+    signMsg.textContent = "Sign in to see stats";
     return;
   }
 
@@ -492,16 +544,53 @@ function pullPersonalStats() {
         li.textContent = `${userName} — ${data[i].score} pts`;
         personalStats.appendChild(li);
       });
-      signMsg.remove();
+      signMsg.textContent = "";
     })
     .catch((error) => console.log(error));
+}
+
+// Sign-up and Login Logic
+function setupAuthButtons() {
+  const signupButton = document.getElementById("signup");
+  const loginButton = document.getElementById("login");
+
+  signupButton.addEventListener("click", async () => {
+    const name = prompt("Choose a username:");
+    if (!name) return;
+
+    try {
+      await signup(name.trim());
+      updateWelcomeMessage();
+      pullPersonalStats();
+      alert("Account created.");
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  loginButton.addEventListener("click", async () => {
+    const name = prompt("Enter your username:");
+    if (!name) return;
+
+    try {
+      await login(name.trim());
+      updateWelcomeMessage();
+      pullPersonalStats();
+      alert("Logged in.");
+    } catch (error) {
+      alert(error.message);
+    }
+  });
 }
 
 /* Game logic. */
 document.addEventListener("DOMContentLoaded", () => {
   const playButton = document.querySelector(".play-button");
+
+  updateWelcomeMessage();
   pullPersonalStats(); // for leaderboard
   pullGlobalStats();
+  setupAuthButtons();
   playButton.addEventListener("click", startGame);
   guessMapPanel.addEventListener("mouseenter", resizeGuessMap);
   guessMapPanel.addEventListener("focusin", resizeGuessMap);

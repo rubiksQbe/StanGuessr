@@ -35,6 +35,15 @@ export function addGameScore(finalScore, user) {
     return { gameid: result.lastInsertRowid, score: finalScore, userid: user}
 }
 
+// Creates a new user to add  to user table
+export function createUser(name) {
+  const existing = getUserByName(name);
+  if (existing) return null;
+
+  const result = db.prepare(`INSERT INTO users (name) VALUES (?)`).run(name);
+  return { userid: result.lastInsertRowid, name };
+}
+
 // Returns limit number of top global scores
 export function getGlobalTopScores(limit) {
     return db.prepare(`
@@ -43,6 +52,13 @@ export function getGlobalTopScores(limit) {
             ORDER BY games.score DESC
             LIMIT ?;
         `).all(limit);
+}
+
+// Returns the user's name
+export function getUserByName(name) {
+  return db
+    .prepare(`SELECT userid, name FROM users WHERE LOWER(name) = LOWER(?)`)
+    .get(name);
 }
 
 // Returns limit number of top user scores

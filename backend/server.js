@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { addUser, addGameScore, getGlobalTopScores, getUserTopScores } from "./db.js";
+import { addUser, addGameScore, getGlobalTopScores, getUserTopScores, getUserByName, createUser } from "./db.js";
 
 
 const app = express();
@@ -112,7 +112,7 @@ app.get("/api/users/:userid/scores/:limit", (req, res) => {
   const topScores = getUserTopScores(userid, limit);
 
   if (!topScores) {
-    return res.status(404).json({ error: `User with id ${id} and limit ${limit} not found` });
+    return res.status(404).json({ error: `User with id ${userid} and limit ${limit} not found` });
   }
 
   res.json(topScores);
@@ -140,6 +140,40 @@ app.post("/api/users", (req, res) => {
 
   const newUser = addUser(name);
   res.status(201).json(newUser);
+});
+
+// Creating a user's account
+app.post("/api/signup", (req, res) => {
+  const name = req.body.name?.trim();
+
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+
+  const newUser = createUser(name);
+
+  if (!newUser) {
+    return res.status(409).json({ error: "Name already taken" });
+  }
+
+  res.status(201).json(newUser);
+});
+
+// Logging into a user's account
+app.post("/api/login", (req, res) => {
+  const name = req.body.name?.trim();
+
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+
+  const user = getUserByName(name);
+
+  if (!user) {
+    return res.status(404).json({ error: "No user with that name" });
+  }
+
+  res.json(user);
 });
 
 app.listen(PORT, () => {
