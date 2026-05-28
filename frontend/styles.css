@@ -12,6 +12,7 @@ body {
   font-weight: 600;
   font-style: normal;
   color: white;
+  min-width: 1000px;
 }
 
 header {
@@ -31,6 +32,13 @@ header {
   justify-content: space-between;
   align-items: end;
   padding: 0rem 4rem;
+}
+
+#welcome-msg {
+  margin: 0;
+  font-weight: 300;
+  font-size: 1.6rem;
+  padding-top: 0.4rem;
 }
 
 .logo {
@@ -128,6 +136,7 @@ footer {
 .leaderboard-card {
   text-align: left;
   padding: 0 5rem;
+  width: 16rem;
 }
 
 .leaderboard-card h3 {
@@ -182,6 +191,13 @@ ol li {
 
 .play-button:hover {
   background: #8b1513;
+}
+
+#signin-msg {
+  margin-top: 0.5rem;
+  color: #cccccc;
+  font-weight: 600;
+  font-size: 1.2rem;
 }
 
 /* Utility */
@@ -243,7 +259,7 @@ ol li {
 }
 
 .end-card {
-  background: #8C1515;
+  background: #8c1515;
   border-radius: 1rem;
   padding: 3rem 4rem;
   text-align: center;
@@ -278,7 +294,7 @@ ol li {
   border: none;
   border-radius: 2rem;
   background-color: #ffffff;
-  color: #8C1515;
+  color: #8c1515;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
