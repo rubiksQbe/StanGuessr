@@ -7,6 +7,7 @@ const gameView = document.getElementById("game-view");
 const resultsView = document.getElementById("results-view");
 const guessMapPanel = document.getElementById("guess-map-panel");
 const guessButton = document.getElementById("guess-button");
+const summaryMapElement = document.getElementById("summary-map");
 
 const tracker = document.getElementById("round-tracker");
 
@@ -19,6 +20,7 @@ let guessMarker;
 let currentLocation;
 let googleMapsPromise;
 let resultsMap;
+let summaryMap;
 /* Dummy Account [TO BE REMOVED]. */
 // let userId = 1;
 // let userName = "Alice"; // TODO: signin updates
@@ -30,7 +32,9 @@ let userName = "";
 const TOTAL_ROUNDS = 5;
 let currentRound = 1;
 let roundScores = [null, null, null, null, null]; // 5 rounds
-let roundDistances = [null, null, null, null, null]
+let roundDistances = [null, null, null, null, null];
+let roundResults = [];
+let usedLocationIds = [];
 
 /* Timer tracking. */
 let timerInterval = null;
@@ -96,9 +100,7 @@ function onTimerExpire() {
       lng: currentLocation.lng,
     };
 
-    // Award 0 points for timeout with no guess
-    roundDistances[currentRound - 1] = 0;
-    showResults(null, actualPosition, 0, 0);
+    showResults(null, actualPosition, 0, null);
   }
 }
 
@@ -120,9 +122,19 @@ async function startRound() {
   showLoading();
 
   try {
-    const response = await fetch(BASE_API_URL + "/location/random");
+    const excludeQuery = usedLocationIds.length
+      ? `?exclude=${encodeURIComponent(usedLocationIds.join(","))}`
+      : "";
+    const response = await fetch(BASE_API_URL + "/location/random" + excludeQuery);
+    if (!response.ok) {
+      throw new Error("No unused locations available.");
+    }
+
     const location = await response.json();
     currentLocation = location;
+    if (location.id !== undefined) {
+      usedLocationIds.push(location.id);
+    }
 
     showGame();
     showRoundTracker();
@@ -143,31 +155,57 @@ function endGame() {
   const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0,);
   // Write score to db
   if (userId) {
-  addGame(totalScore, userId);
-}
-
-  // update page
-  document.querySelector("#final-score").textContent = "Score: " + totalScore;
-  const sum_list = document.querySelector("#round-summary")
-  sum_list.textContent = "";
-  for (let i = 0; i < TOTAL_ROUNDS; i++) {
-    let li = document.createElement("li");
-    // Round 1: 4000 pts (500 ft)
-    li.textContent = `Round ${i + 1}: ${roundScores[i]} pts (${roundDistances[i]} ft)`;
-    sum_list.appendChild(li);
+    addGame(totalScore, userId);
   }
-  
-  // Display end card
+
+  document.querySelector("#final-score").textContent = totalScore.toLocaleString();
+  updateSummaryRank(totalScore);
+
+  hideResults();
   hideRoundTracker();
   endScreen.classList.remove("hidden");
+  renderSummaryMap();
 }
 
-// Play again button in end screen card
-document.querySelector("#play-again-btn").addEventListener("click", ()=> {
+async function updateSummaryRank(totalScore) {
+  const rankElement = document.querySelector("#summary-rank");
+  rankElement.textContent = "...";
+
+  try {
+    const response = await fetch(BASE_API_URL + `/leaderboard/rank/${totalScore}`);
+    if (!response.ok) {
+      throw new Error("Failed to load score rank.");
+    }
+
+    const data = await response.json();
+    rankElement.textContent = `#${data.rank.toLocaleString()}`;
+  } catch (error) {
+    console.error("Failed to load score rank:", error);
+    rankElement.textContent = "--";
+  }
+}
+
+function showHome() {
+  stopTimer();
   hideResults();
+  hideRoundTracker();
+  gameView.classList.add("hidden");
+  loadingScreen.classList.add("hidden");
+  endScreen.classList.add("hidden");
+  homeScreen.classList.remove("hidden");
+  document.querySelector("header").classList.remove("hidden");
+  document.querySelector("footer").classList.remove("hidden");
+  document.getElementById("leaderboard").classList.remove("hidden");
+  pullGlobalStats();
+  pullPersonalStats();
+}
+
+document.querySelector("#summary-next-btn").addEventListener("click", () => {
   endScreen.classList.add("hidden");
   startGame();
-})
+});
+
+document.querySelector("#summary-home-btn").addEventListener("click", showHome);
 
 /* Add game to database. */
 function addGame(finalScore, user) {
@@ -256,6 +294,11 @@ function resetGame() {
   stopTimer();
   currentRound = 1;
   roundScores = [null, null, null, null, null];
+  roundDistances = [null, null, null, null, null];
+  roundResults = [];
+  usedLocationIds = [];
+  currentLocation = null;
+  endScreen.classList.add("hidden");
   updateRoundTracker();
 }
 
@@ -308,12 +351,12 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
   const distanceElement = resultsView.querySelector(".results-distance-value");
   const scoreElement = resultsView.querySelector(".results-score-value");
 
-  // Record score for current round
-  roundScores[currentRound - 1] = score;
+  recordRoundResult(guessPosition, actualPosition, score, distanceMeters);
   updateRoundTracker();
 
   // Update footer values
-  distanceElement.textContent = formatDistance(distanceMeters);
+  distanceElement.textContent =
+    guessPosition && distanceMeters !== null ? formatDistance(distanceMeters) : "No guess";
   scoreElement.textContent = score.toLocaleString();
 
   // Hide game view, show results view
@@ -395,6 +438,122 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
     // No guess - just center on the actual location
     resultsMap.setCenter(actualPosition);
     resultsMap.setZoom(17);
+  }
+}
+
+function recordRoundResult(guessPosition, actualPosition, score, distanceMeters) {
+  const roundIndex = currentRound - 1;
+  const distanceFeet =
+    guessPosition && distanceMeters !== null ? Math.round(distanceMeters * 3.28084) : null;
+  const guess = guessPosition
+    ? { lat: guessPosition.lat(), lng: guessPosition.lng() }
+    : null;
+  const actual = {
+    lat: actualPosition.lat,
+    lng: actualPosition.lng,
+    name: currentLocation?.name || "",
+    id: currentLocation?.id,
+  };
+
+  roundScores[roundIndex] = score;
+  roundDistances[roundIndex] = distanceFeet;
+  roundResults[roundIndex] = {
+    round: currentRound,
+    location: actual,
+    guess,
+    score,
+    distanceMeters,
+    distanceFeet,
+  };
+}
+
+function renderSummaryMap() {
+  summaryMap = new google.maps.Map(summaryMapElement, {
+    center: STANFORD_CENTER,
+    zoom: 16,
+    mapTypeControl: false,
+    fullscreenControl: false,
+    streetViewControl: false,
+    clickableIcons: false,
+  });
+
+  const bounds = new google.maps.LatLngBounds();
+  let hasBounds = false;
+
+  roundResults.forEach((result) => {
+    const actualPosition = {
+      lat: result.location.lat,
+      lng: result.location.lng,
+    };
+
+    new google.maps.Marker({
+      position: actualPosition,
+      map: summaryMap,
+      title: `Round ${result.round} location${result.location.name ? `: ${result.location.name}` : ""}`,
+      label: {
+        text: String(result.round),
+        color: "#1f3a1f",
+        fontWeight: "900",
+      },
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 11,
+        fillColor: "#51cf66",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3,
+      },
+    });
+    bounds.extend(actualPosition);
+    hasBounds = true;
+
+    if (!result.guess) {
+      return;
+    }
+
+    new google.maps.Marker({
+      position: result.guess,
+      map: summaryMap,
+      title: `Round ${result.round} guess: ${result.score.toLocaleString()} pts`,
+      label: {
+        text: String(result.round),
+        color: "#ffffff",
+        fontWeight: "900",
+      },
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 11,
+        fillColor: "#8C1515",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3,
+      },
+    });
+
+    new google.maps.Polyline({
+      path: [result.guess, actualPosition],
+      map: summaryMap,
+      strokeColor: "#333333",
+      strokeOpacity: 0,
+      icons: [
+        {
+          icon: {
+            path: "M 0,-1 0,1",
+            strokeOpacity: 0.8,
+            strokeWeight: 3,
+            scale: 3,
+          },
+          offset: "0",
+          repeat: "15px",
+        },
+      ],
+    });
+
+    bounds.extend(result.guess);
+  });
+
+  if (hasBounds) {
+    summaryMap.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
   }
 }
 
@@ -568,9 +727,6 @@ function calculateScore(distanceMeters) {
 function formatDistance(meters) {
   const feet = meters * 3.28084;
   const miles = meters / 1609.344;
-
-  // Record distance for current round
-  roundDistances[currentRound - 1] = Math.round(feet);
 
   if (miles < 0.1) {
     return `${Math.round(feet)} ft`;

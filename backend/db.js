@@ -54,6 +54,15 @@ export function getGlobalTopScores(limit) {
         `).all(limit);
 }
 
+// Returns a score's all-time rank using competition-style ordering.
+export function getScoreRank(score) {
+    const result = db.prepare(`
+        SELECT COUNT(*) + 1 AS rank FROM games
+            WHERE score > ?;
+        `).get(score);
+    return result.rank;
+}
+
 // Returns the user's name
 export function getUserByName(name) {
   return db

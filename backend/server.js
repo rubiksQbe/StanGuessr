@@ -4,11 +4,11 @@ import fs from "fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { addUser, addGameScore, getGlobalTopScores, getUserTopScores, getUserByName, createUser } from "./db.js";
+import { addUser, addGameScore, getGlobalTopScores, getScoreRank, getUserTopScores, getUserByName, createUser } from "./db.js";
 
 
 const app = express();
-const PORT = 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 const MAPS_CONFIG_URL = "http://localhost:3001/api/config/maps";
 
@@ -80,16 +80,29 @@ const stanfordLocations = [
   { lat: 37.4257376, lng: -122.1806768, name: "In between Ricker and Robinson" },
   { lat: 37.4333776, lng: -122.1758075, name: "Front of Stanford Medical Center" },
   { lat: 37.4328688, lng: -122.1711744, name: "Cantor" },  
-];
+].map((location, index) => ({ id: index + 1, ...location }));
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "StanGuessr API is running" });
 });
 
 app.get("/api/location/random", (req, res) => {
-  // next step: make sure there aren't repeat locations in same game
-  const randomIndex = Math.floor(Math.random() * stanfordLocations.length);
-  const location = stanfordLocations[randomIndex];
+  const excludedIds = new Set(
+    String(req.query.exclude || "")
+      .split(",")
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id)),
+  );
+  const availableLocations = stanfordLocations.filter(
+    (location) => !excludedIds.has(location.id),
+  );
+
+  if (availableLocations.length === 0) {
+    return res.status(409).json({ error: "No unused locations available" });
+  }
+
+  const randomIndex = Math.floor(Math.random() * availableLocations.length);
+  const location = availableLocations[randomIndex];
   res.json(location);
 });
 
@@ -120,6 +133,16 @@ app.get("/api/leaderboard/:limit", (req, res) => {
   res.json(leaders);
 });
 
+app.get("/api/leaderboard/rank/:score", (req, res) => {
+  const score = Number(req.params.score);
+
+  if (!Number.isFinite(score)) {
+    return res.status(400).json({ error: "Score must be a number" });
+  }
+
+  res.json({ rank: getScoreRank(score) });
+});
+
 // Retrieving personal stats
 app.get("/api/users/:userid/scores/:limit", (req, res) => {
   const userid = Number(req.params.userid);
@@ -137,7 +160,7 @@ app.get("/api/users/:userid/scores/:limit", (req, res) => {
 app.post("/api/end-game", (req,res) => {
   const { score, userid } = req.body;
 
-  if (!score || !userid) {
+  if (score === undefined || userid === undefined) {
     return res.status(400).json({ error: "Missing required fields: score, userid" });
   }
 

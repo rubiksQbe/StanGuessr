@@ -127,12 +127,20 @@
 
     <!-- End Summary -->
     <section id="end-screen" class="hidden">
-      <div class="end-card">
-        <img src="./media/stanford-seal.png" class="seal" alt="Stanford Seal" />
-        <h1>Round Complete</h1>
-        <p id="final-score">Final Score: 0</p>
-        <ul id="round-summary"></ul>
-        <button id="play-again-btn">Play Again</button>
+      <div id="summary-map"></div>
+      <div class="results-footer summary-footer">
+        <div class="results-distance-section">
+          <span class="results-distance-value" id="summary-rank">--</span>
+          <span class="results-distance-label">ALL TIME SCORE</span>
+        </div>
+        <div class="summary-actions">
+          <button id="summary-home-btn" class="results-next-button secondary">HOME</button>
+          <button id="summary-next-btn" class="results-next-button">PLAY AGAIN</button>
+        </div>
+        <div class="results-score-section">
+          <span class="results-score-value" id="final-score">0</span>
+          <span class="results-score-label">OF 25,000 POINTS</span>
+        </div>
       </div>
     </section>
 
