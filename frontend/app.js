@@ -32,6 +32,76 @@ let currentRound = 1;
 let roundScores = [null, null, null, null, null]; // 5 rounds
 let roundDistances = [null, null, null, null, null]
 
+/* Timer tracking. */
+let timerInterval = null;
+let timeRemaining = 60;
+
+// ==========================================
+// TIMER FUNCTIONS
+// ==========================================
+
+function startTimer() {
+  timeRemaining = 60;
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    updateTimerDisplay();
+
+    if (timeRemaining <= 0) {
+      onTimerExpire();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  timeRemaining = 60;
+}
+
+function updateTimerDisplay() {
+  const timerDisplay = document.getElementById("timer-display");
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+  timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function onTimerExpire() {
+  stopTimer();
+
+  if (guessMarker) {
+    // User placed a pin - calculate their score
+    const guessPosition = guessMarker.getPosition();
+    const actualPosition = {
+      lat: currentLocation.lat,
+      lng: currentLocation.lng,
+    };
+
+    const distance = calculateDistance(
+      guessPosition.lat(),
+      guessPosition.lng(),
+      currentLocation.lat,
+      currentLocation.lng,
+    );
+    const score = calculateScore(distance);
+
+    showResults(guessPosition, actualPosition, score, distance);
+  } else {
+    // No pin placed - award 0 points
+    const actualPosition = {
+      lat: currentLocation.lat,
+      lng: currentLocation.lng,
+    };
+
+    // Award 0 points for timeout with no guess
+    roundDistances[currentRound - 1] = 0;
+    showResults(null, actualPosition, 0, 0);
+  }
+}
+
 // ==========================================
 // GAME FUNCTIONS
 // ==========================================
@@ -61,6 +131,7 @@ async function startRound() {
     initStreetView(location.lat, location.lng);
     initGuessMap();
     resetGuess();
+    startTimer();
   } catch (error) {
     console.error("Failed to start round:", error);
     alert("Failed to load location. Please try again.");
@@ -182,6 +253,7 @@ function showLoading() {
 }
 
 function resetGame() {
+  stopTimer();
   currentRound = 1;
   roundScores = [null, null, null, null, null];
   updateRoundTracker();
@@ -259,20 +331,22 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
     clickableIcons: false,
   });
 
-  // Add guess marker (cardinal red pin)
-  new google.maps.Marker({
-    position: guessPosition,
-    map: resultsMap,
-    title: "Your guess",
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: "#8C1515",
-      fillOpacity: 1,
-      strokeColor: "#ffffff",
-      strokeWeight: 3,
-    },
-  });
+  // Add guess marker (cardinal red pin) - only if a guess was made
+  if (guessPosition) {
+    new google.maps.Marker({
+      position: guessPosition,
+      map: resultsMap,
+      title: "Your guess",
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#8C1515",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3,
+      },
+    });
+  }
 
   // Add actual location marker (green pin)
   new google.maps.Marker({
@@ -289,31 +363,39 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
     },
   });
 
-  // Draw dotted line between guess and actual location
-  new google.maps.Polyline({
-    path: [guessPosition, actualPosition],
-    map: resultsMap,
-    strokeColor: "#333333",
-    strokeOpacity: 0,
-    icons: [
-      {
-        icon: {
-          path: "M 0,-1 0,1",
-          strokeOpacity: 0.8,
-          strokeWeight: 3,
-          scale: 3,
+  // Draw dotted line between guess and actual location - only if a guess was made
+  if (guessPosition) {
+    new google.maps.Polyline({
+      path: [guessPosition, actualPosition],
+      map: resultsMap,
+      strokeColor: "#333333",
+      strokeOpacity: 0,
+      icons: [
+        {
+          icon: {
+            path: "M 0,-1 0,1",
+            strokeOpacity: 0.8,
+            strokeWeight: 3,
+            scale: 3,
+          },
+          offset: "0",
+          repeat: "15px",
         },
-        offset: "0",
-        repeat: "15px",
-      },
-    ],
-  });
+      ],
+    });
+  }
 
-  // Fit map to show both markers
-  const bounds = new google.maps.LatLngBounds();
-  bounds.extend(guessPosition);
-  bounds.extend(actualPosition);
-  resultsMap.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+  // Fit map to show markers
+  if (guessPosition) {
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(guessPosition);
+    bounds.extend(actualPosition);
+    resultsMap.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+  } else {
+    // No guess - just center on the actual location
+    resultsMap.setCenter(actualPosition);
+    resultsMap.setZoom(17);
+  }
 }
 
 function hideResults() {
@@ -600,6 +682,8 @@ document.addEventListener("DOMContentLoaded", () => {
       resizeGuessMap();
       return;
     }
+
+    stopTimer();
 
     const guessPosition = guessMarker.getPosition();
     const actualPosition = {

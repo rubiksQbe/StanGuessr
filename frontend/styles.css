@@ -323,6 +323,27 @@ ol li {
   height: 100%;
 }
 
+/* Game Timer */
+#game-timer {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px solid #8c1515;
+  border-radius: 999px;
+  padding: 0.5rem 1.5rem;
+  box-shadow: 0 0.3rem 1rem rgba(0, 0, 0, 0.25);
+}
+
+#timer-display {
+  color: #2e2d29;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
 #guess-map-panel {
   position: absolute;
   right: 1.5rem;
