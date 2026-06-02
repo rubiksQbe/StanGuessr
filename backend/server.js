@@ -57,14 +57,29 @@ function loadEnvFile(filePath) {
 }
 
 const stanfordLocations = [
-  { lat: 37.4268, lng: -122.1692, name: "Main Quad" },
-  { lat: 37.4267, lng: -122.1672, name: "Hoover Tower" },
-  { lat: 37.43, lng: -122.17, name: "The Oval" },
-  { lat: 37.432, lng: -122.175, name: "Palm Drive" },
-  { lat: 37.4244, lng: -122.1708, name: "White Plaza" }, 
-  { lat: 37.4245, lng: -122.1657, name: "Engineering Quad" },
-  { lat: 37.4265, lng: -122.1675, name: "Green Library" }, 
-  { lat: 37.4322, lng: -122.1711, name: "Cantor Arts Center" },
+  { lat: 37.4272713, lng: -122.1840778, name: "O'Donohue Family Stanford Educational Farm" },
+  { lat: 37.4205135, lng: -122.1737358, name: "Kappa Alpha"},
+  { lat: 37.4198322, lng: -122.1745579, name: "In between EBF and Narnia" },
+  { lat: 37.4196663, lng: -122.1672592, name: "In between Phi Psi and TouLou" },
+  { lat: 37.4240794, lng: -122.1713111, name: "Treehouse entrance" },
+  { lat: 37.4234477, lng: -122.1817297, name: "Driving range" },
+  { lat: 37.4248346, lng: -122.1687196, name: "Bookstore" },
+  { lat: 37.4244411, lng: -122.1670459, name: "Ceras" },
+  { lat: 37.4260864, lng: -122.1637039, name: "Toyon Courtyard" },
+  { lat: 37.4264779, lng: -122.1672021, name: "Green entrance"},
+  { lat: 37.4270717, lng: -122.170385, name: "Memorial Church" },
+  { lat: 37.4276321, lng: -122.1669879, name: "Hoover Tower" },
+  { lat: 37.4287364, lng: -122.1632509, name: "Graduate School of Business" },
+  { lat: 37.4252152, lng: -122.1743048, name: "Windhover" },
+  { lat: 37.4214093, lng: -122.1780163, name: "Lake Lagunita" },
+  { lat: 37.4053681, lng: -122.1749427, name: "Dish" },
+  { lat: 37.4219057, lng: -122.162767, name: "Pi Phi" },
+  { lat: 37.425097, lng: -122.170026, name: "Old Union" },
+  { lat: 37.4290153, lng: -122.1558078, name: "Stanford Federal Credit Union" },
+  { lat: 37.4268217, lng: -122.1773863, name: "AOERC" },
+  { lat: 37.4257376, lng: -122.1806768, name: "In between Ricker and Robinson" },
+  { lat: 37.4333776, lng: -122.1758075, name: "Front of Stanford Medical Center" },
+  { lat: 37.4328688, lng: -122.1711744, name: "Cantor" },  
 ];
 
 app.get("/", (req, res) => {
