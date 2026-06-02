@@ -521,6 +521,20 @@ function collapseGuessMap() {
 // SCORING
 // ==========================================
 
+/**
+ * Get time-based score multiplier
+ * First 10 seconds: no penalty (1.0)
+ * After that: decreases by 0.01 per second down to 0.5
+ */
+function getTimeMultiplier() {
+  // First 10 seconds (timeRemaining 60-50): no penalty
+  if (timeRemaining >= 50) {
+    return 1.0;
+  }
+  // After 10 seconds: multiplier decreases from 0.99 down to 0.50
+  return 0.50 + (timeRemaining * 0.01);
+}
+
 /* Calculate distance between two points using Haversine formula
    (I Used AI for this function apparently its a good one for this kinda thing) */
 function calculateDistance(lat1, lng1, lat2, lng2) {
@@ -543,11 +557,12 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 }
 
 /**
- * Calculate score based on distance from target
+ * Calculate score based on distance from target and time remaining
  */
 function calculateScore(distanceMeters) {
-  const score = MAX_POINTS * Math.exp(-distanceMeters / DECAY_CONSTANT);
-  return Math.round(score);
+  const baseScore = MAX_POINTS * Math.exp(-distanceMeters / DECAY_CONSTANT);
+  const multiplier = getTimeMultiplier();
+  return Math.round(baseScore * multiplier);
 }
 
 function formatDistance(meters) {
