@@ -210,6 +210,27 @@ ol li {
   font-size: 1.2rem;
 }
 
+.signin-link {
+  padding: 0;
+  background: none;
+  border: none;
+  color: #8c1515;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.signin-link:hover,
+.signin-link:focus-visible {
+  opacity: 0.8;
+}
+
+#end-signin-msg .signin-link {
+  color: #ffffff;
+}
+
 /* Auth View */
 #auth-view {
   position: fixed;
@@ -468,6 +489,7 @@ aside {
   letter-spacing: 0.05em;
   font-size: 0.9rem;
   align-self: center;
+  padding-left: 0.5rem;
 }
 
 #lead-bar {
@@ -478,18 +500,13 @@ aside {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.lead-bar-rotated {
-  transform: rotate(90deg) translateX(0) translateY(-100%);
-  transform-origin: top left;
-}
-
 #lead-bar-left {
   display: flex;
   margin-right: auto;
   gap: 0.3rem;
 }
 
-#end-lead-header {
+.end-lead-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -498,20 +515,25 @@ aside {
   margin-bottom: 0.75rem;
 }
 
-img {
-  height: 2.2rem;
+.end-lead-personal-header {
+  margin-top: 1rem;
 }
 
-#end-lead-header h3 {
+.end-lead-header h3 {
   margin: 0;
   color: white;
-  font-size: 1.3rem;
+  font-size: 1.05rem;
   font-weight: 500;
+}
+
+#end-signin-msg {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
 }
 
 #end-leaderboard {
   background-color: #8b1513;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1rem 0.75rem;
   font-size: 1.2rem;
   line-height: 1;
   border-radius: .25rem;
@@ -534,7 +556,7 @@ aside li {
   padding: 0.25rem 0;
 }
 
-#hide-lead-btn, #drop-lead-btn {
+#drop-lead-btn {
   color: white;
   border-radius: 2px;
   background-color: #8b1513;
@@ -546,7 +568,7 @@ aside li {
   justify-content: center;
 }
 
-#hide-lead-btn:hover, #drop-lead-btn:hover {
+#drop-lead-btn:hover {
   background-color: rgba(0, 0, 0, 0.3);
   border-color: rgba(255, 255, 255, 0.4);
 }

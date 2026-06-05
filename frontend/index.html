@@ -131,7 +131,7 @@
         </div>
         <div class="leaderboard-card" role="region" aria-labelledby="personal-leaderboard-heading" aria-describedby="signin-msg">
           <h3 id="personal-leaderboard-heading">PERSONAL</h3>
-          <div id="signin-msg">Sign in to see stats</div>
+          <div id="signin-msg"><button type="button" id="signin-link" class="signin-link">Login</button> to see stats</div>
           <ol id="personal-stats" class="leaderboard-list"></ol>
         </div>
       </div>
@@ -290,17 +290,20 @@
       <aside id="end-leaderboard-box">
         <div id="lead-bar">
           <div id="lead-bar-left">
-            <button id="hide-lead-btn">◂</button>
             <p class="aside-title">LEADERBOARD</p>
           </div>
           <button id="drop-lead-btn">+</button>
         </div>
         <div id="end-leaderboard" class="hidden">
-          <div id="end-lead-header">
-            <img src="./media/stanford-seal.png" alt="Stanford Seal">
+          <div class="end-lead-header">
             <h3>Global</h3>
           </div>
           <ol id="end-leaderboard-list"></ol>
+          <div class="end-lead-header end-lead-personal-header">
+            <h3>Personal</h3>
+          </div>
+          <div id="end-signin-msg"><button type="button" id="end-signin-link" class="signin-link">Login</button> to see stats</div>
+          <ol id="end-personal-list"></ol>
         </div>
       </aside>
 

@@ -41,6 +41,7 @@ let summaryMap;
 let userId = null;
 let userName = "";
 let authMode = "signup";
+let authOrigin = "home";
 
 /* Round tracking. */
 const TOTAL_ROUNDS = 5;
@@ -187,44 +188,19 @@ function endGame() {
   endScreen.classList.remove("hidden");
   renderSummaryMap();
   pullGlobalStats(end_lead_list);
+  pullPersonalStats(end_personal_list, end_signin_msg);
 }
 
 // End game leaderboard buttons
 const drop_lead_btn = document.querySelector("#drop-lead-btn");
-const hide_lead_btn = document.querySelector("#hide-lead-btn");
 const end_leaderboard = document.querySelector("#end-leaderboard");
-const lead_bar = document.querySelector("#lead-bar");
+const end_personal_list = document.querySelector("#end-personal-list");
+const end_signin_msg = document.querySelector("#end-signin-msg");
 
 // Drop down leaderboard
 drop_lead_btn.addEventListener("click", () => {
-  if (drop_lead_btn.textContent === "-" || hide_lead_btn.textContent === "▴") {
-    drop_lead_btn.textContent = "+";
-    end_leaderboard.classList.add("hidden");
-  } else {
-    drop_lead_btn.textContent = "-";
-    end_leaderboard.classList.remove("hidden");
-  }
-});
-
-// Hide leaderboard
-hide_lead_btn.addEventListener("click", ()=> {
-  if (hide_lead_btn.textContent === "◂") {
-    lead_bar.classList.add("lead-bar-rotated");
-    hide_lead_btn.textContent = "▴";
-    
-    drop_lead_btn.classList.add("hidden");
-    end_leaderboard.classList.add("hidden");
-  } else {
-    lead_bar.classList.remove("lead-bar-rotated");
-    hide_lead_btn.textContent = "◂";
-
-    drop_lead_btn.classList.remove("hidden");
-    if (drop_lead_btn.textContent === "-") {
-      end_leaderboard.classList.remove("hidden");
-    }
-    
-  }
-  
+  const collapsed = end_leaderboard.classList.toggle("hidden");
+  drop_lead_btn.textContent = collapsed ? "+" : "-";
 });
 
 async function updateSummaryRank(totalScore) {
@@ -341,13 +317,13 @@ function updateWelcomeMessage() {
 
   if (userId && userName) {
     welcomeMsg.textContent = `Welcome, ${userName}!`;
-    signMsg.textContent = "";
+    signMsg.classList.add("hidden");
     signupButton.classList.add("hidden");
     loginButton.classList.add("hidden");
     logoutButton.classList.remove("hidden");
   } else {
     welcomeMsg.textContent = "";
-    signMsg.textContent = "Sign in to see stats";
+    signMsg.classList.remove("hidden");
     signupButton.classList.remove("hidden");
     loginButton.classList.remove("hidden");
     logoutButton.classList.add("hidden");
@@ -388,8 +364,9 @@ function updateAuthView() {
   setAuthFeedback("");
 }
 
-function showAuthView(mode) {
+function showAuthView(mode, origin = "home") {
   authMode = mode;
+  authOrigin = origin;
   homeScreen.classList.add("hidden");
   document.querySelector("header").classList.add("hidden");
   document.querySelector("footer").classList.add("hidden");
@@ -401,6 +378,15 @@ function showAuthView(mode) {
   authView.classList.remove("hidden");
   updateAuthView();
   authNameInput.focus();
+}
+
+function returnFromAuth() {
+  if (authOrigin === "end") {
+    authView.classList.add("hidden");
+    endScreen.classList.remove("hidden");
+    return;
+  }
+  showHome();
 }
 
 function updateLeaderboardButtonText() {
@@ -996,11 +982,11 @@ function pullGlobalStats(elem) {
 }
 
 /* Populate personal stats. */
-function pullPersonalStats() {
-  personalStats.replaceChildren();
+function pullPersonalStats(listElem = personalStats, msgElem = signMsg) {
+  listElem.replaceChildren();
   // not signed in.
   if (!userId) {
-    signMsg.textContent = "Sign in to see stats";
+    msgElem.classList.remove("hidden");
     return;
   }
 
@@ -1010,9 +996,9 @@ function pullPersonalStats() {
       data.forEach((entry, i) => {
         let li = document.createElement("li");
         li.textContent = `${userName} — ${data[i].score} pts`;
-        personalStats.appendChild(li);
+        listElem.appendChild(li);
       });
-      signMsg.textContent = "";
+      msgElem.classList.add("hidden");
     })
     .catch((error) => console.log(error));
 }
@@ -1023,9 +1009,13 @@ function setupAuthButtons() {
   const loginButton = document.getElementById("login");
   const logoutButton = document.getElementById("logout");
   const authBackButton = document.getElementById("auth-back-button");
+  const signinLink = document.getElementById("signin-link");
+  const endSigninLink = document.getElementById("end-signin-link");
 
   signupButton.addEventListener("click", () => showAuthView("signup"));
   loginButton.addEventListener("click", () => showAuthView("login"));
+  signinLink.addEventListener("click", () => showAuthView("login", "home"));
+  endSigninLink.addEventListener("click", () => showAuthView("login", "end"));
   logoutButton.addEventListener("click", () => {
     userId = null;
     userName = "";
@@ -1033,7 +1023,7 @@ function setupAuthButtons() {
     pullPersonalStats();
     showHome();
   });
-  authBackButton.addEventListener("click", showHome);
+  authBackButton.addEventListener("click", returnFromAuth);
   authSwitchButton.addEventListener("click", () => {
     authMode = authMode === "signup" ? "login" : "signup";
     updateAuthView();
@@ -1078,7 +1068,8 @@ function setupAuthButtons() {
 
       updateWelcomeMessage();
       pullPersonalStats();
-      window.setTimeout(showHome, 400);
+      pullPersonalStats(end_personal_list, end_signin_msg);
+      window.setTimeout(returnFromAuth, 400);
     } catch (error) {
       setAuthFeedback(error.message || "Something went wrong.");
     } finally {
