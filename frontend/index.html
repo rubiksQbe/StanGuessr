@@ -15,22 +15,23 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header>
-      <section class="nav-bar">
-        <h1 class="logo"><img src="./media/stanguessr.png" alt="StanGuessr logo" class="logo-icon" />StanGuessr</h1>
-        <p id="welcome-msg"></p>
-        <section id="nav-buttons">
+    <header aria-labelledby="site-title">
+      <section class="nav-bar" aria-labelledby="site-title">
+        <h1 id="site-title" class="logo"><img src="./media/stanguessr.png" alt="StanGuessr logo" class="logo-icon" />StanGuessr</h1>
+        <p id="welcome-msg" aria-live="polite" aria-atomic="true"></p>
+        <section id="nav-buttons" aria-label="Account actions">
           <button id="signup" class="nav-button">Sign up</button>
           <button id="login" class="nav-button">Login</button>
+          <button id="logout" class="nav-button hidden" type="button">Log out</button>
         </section>
       </section>
     </header>
 
-    <main>
+    <main aria-labelledby="hero-heading" aria-describedby="hero-description">
       <!-- Landing Page -->
-      <div class="hero">
-        <h2 class="greeting-message">Explore Stanford</h2>
-        <h3 class="instructions">
+      <div class="hero" role="region" aria-labelledby="hero-heading" aria-describedby="hero-description">
+        <h2 id="hero-heading" class="greeting-message">Explore Stanford</h2>
+        <h3 id="hero-description" class="instructions">
           Get dropped somewhere on campus and figure out where you are!
         </h3>
         <button class="play-button">Play now</button>
@@ -38,18 +39,98 @@
     </main>
 
     <footer>
-      <button class="leaderboard-bar">Leaderboard &MediumSpace;↓</button>
+      <button
+        class="leaderboard-bar"
+        type="button"
+        aria-controls="leaderboard"
+        aria-label="Jump to leaderboard"
+      >
+        Leaderboard &MediumSpace;↓
+      </button>
     </footer>
 
+    <!-- Auth View -->
+    <section
+      id="auth-view"
+      class="hidden"
+      aria-labelledby="auth-title"
+      aria-describedby="auth-subtitle auth-feedback"
+    >
+      <div class="auth-shell">
+        <button
+          id="auth-back-button"
+          class="auth-back-button"
+          type="button"
+          aria-label="Return to home screen"
+        >
+          Back
+        </button>
+        <div class="auth-card">
+          <p id="auth-eyebrow" class="auth-eyebrow">Account</p>
+          <h2 id="auth-title" class="auth-title">Sign up</h2>
+          <p id="auth-subtitle" class="auth-subtitle">
+            Create a StanGuessr username to save your best scores.
+          </p>
+
+          <form id="auth-form" class="auth-form">
+            <label for="auth-name" class="auth-label">Username</label>
+            <input
+              id="auth-name"
+              name="name"
+              class="auth-input"
+              type="text"
+              maxlength="32"
+              autocomplete="username"
+              required
+              aria-describedby="auth-name-help auth-feedback"
+            />
+            <p id="auth-name-help" class="auth-help">
+              Letters, symbols, and numbers are okay. Usernames are matched by name.
+            </p>
+            <label for="auth-password" class="auth-label">Password</label>
+            <input
+              id="auth-password"
+              name="password"
+              class="auth-input"
+              type="password"
+              minlength="6"
+              autocomplete="current-password"
+              required
+              aria-describedby="auth-password-help auth-feedback"
+            />
+            <p id="auth-password-help" class="auth-help">
+              Use at least 6 characters. You will need this password to log in later.
+            </p>
+            <p
+              id="auth-feedback"
+              class="auth-feedback"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></p>
+            <button id="auth-submit" class="auth-submit" type="submit">Create account</button>
+          </form>
+
+          <p id="auth-switch-copy" class="auth-switch-copy">
+            <span id="auth-switch-text">Already have an account?</span>
+            <button id="auth-switch-button" class="auth-switch-button" type="button">
+              Log in
+            </button>
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- Landing Page Leaderboard -->
-    <section id="leaderboard">
+    <section id="leaderboard" aria-labelledby="leaderboard-heading">
+      <h2 id="leaderboard-heading" class="sr-only">Leaderboard</h2>
       <div class="leaderboard-container">
-        <div class="leaderboard-card">
-          <h3>GLOBAL</h3>
+        <div class="leaderboard-card" role="region" aria-labelledby="global-leaderboard-heading">
+          <h3 id="global-leaderboard-heading">GLOBAL</h3>
           <ol id="global-stats" class="leaderboard-list"></ol>
         </div>
-        <div class="leaderboard-card">
-          <h3>PERSONAL</h3>
+        <div class="leaderboard-card" role="region" aria-labelledby="personal-leaderboard-heading" aria-describedby="signin-msg">
+          <h3 id="personal-leaderboard-heading">PERSONAL</h3>
           <div id="signin-msg">Sign in to see stats</div>
           <ol id="personal-stats" class="leaderboard-list"></ol>
         </div>
@@ -57,15 +138,36 @@
     </section>
 
     <!-- Loading Screen -->
-    <div id="loading-screen" class="hidden">
+    <div
+      id="loading-screen"
+      class="hidden"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-labelledby="loading-heading"
+      aria-describedby="loading-description"
+    >
       <div class="loading-content">
-        <h1>Loading...</h1>
-        <div class="spinner"></div>
+        <h1 id="loading-heading">Loading...</h1>
+        <p id="loading-description" class="sr-only">
+          Preparing the next Stanford location and map view.
+        </p>
+        <div class="spinner" aria-hidden="true"></div>
       </div>
     </div>
 
     <!-- Round Tracker (shared between game and results) -->
-    <div id="round-tracker" class="hidden">
+    <div
+      id="round-tracker"
+      class="hidden"
+      role="region"
+      aria-labelledby="round-tracker-heading"
+      aria-describedby="round-tracker-description"
+    >
+      <h2 id="round-tracker-heading" class="sr-only">Round progress</h2>
+      <p id="round-tracker-description" class="sr-only">
+        Shows the current round, completed round scores, and total score.
+      </p>
       <div class="round-item" data-round="1">
         <span class="round-label">R1</span>
         <span class="round-score">-</span>
@@ -98,27 +200,73 @@
     </div>
 
     <!-- Game View -->
-    <div id="game-view" class="hidden">
-      <div id="game-timer">
+    <div
+      id="game-view"
+      class="hidden"
+      role="region"
+      aria-labelledby="game-view-heading"
+      aria-describedby="game-view-description"
+    >
+      <h2 id="game-view-heading" class="sr-only">Game round</h2>
+      <p id="game-view-description" class="sr-only">
+        Explore the street view, then open the campus map to place your guess before the timer ends.
+      </p>
+      <div id="game-timer" role="timer" aria-live="off" aria-atomic="true" aria-label="Time remaining">
         <span id="timer-display">01:00</span>
       </div>
-      <div id="street-view"></div>
-      <div id="guess-map-panel" aria-label="Guess map">
-        <div id="guess-map"></div>
-        <button id="guess-button" type="button">Place pin on map</button>
+      <div
+        id="street-view"
+        role="region"
+        aria-labelledby="street-view-heading"
+        aria-describedby="street-view-description"
+      >
+        <h3 id="street-view-heading" class="sr-only">Street view panorama</h3>
+        <p id="street-view-description" class="sr-only">
+          Use this panorama to inspect the current campus location before guessing on the map.
+        </p>
+      </div>
+      <div
+        id="guess-map-panel"
+        role="region"
+        aria-labelledby="guess-map-heading"
+        aria-describedby="guess-map-description"
+      >
+        <h3 id="guess-map-heading" class="sr-only">Guess map</h3>
+        <p id="guess-map-description" class="sr-only">
+          Open the map, place a pin on the Stanford campus, then submit your guess.
+        </p>
+        <div id="guess-map" aria-label="Campus map for placing your guess"></div>
+        <button
+          id="guess-button"
+          type="button"
+          aria-controls="guess-map-panel"
+          aria-describedby="guess-map-description"
+        >
+          Place pin on map
+        </button>
       </div>
     </div>
 
     <!-- In-Round Results View -->
-    <div id="results-view" class="hidden">
-      <div id="results-map"></div>
+    <div
+      id="results-view"
+      class="hidden"
+      role="region"
+      aria-labelledby="results-heading"
+      aria-describedby="results-description"
+    >
+      <h2 id="results-heading" class="sr-only">Round results</h2>
+      <p id="results-description" class="sr-only">
+        Review the distance between your guess and the actual location, along with your round score.
+      </p>
+      <div id="results-map" aria-label="Map showing your guess and the actual location"></div>
       <div class="results-footer">
-        <div class="results-distance-section">
+        <div class="results-distance-section" aria-live="polite" aria-atomic="true">
           <span class="results-distance-value">0</span>
           <span class="results-distance-label">FROM LOCATION</span>
         </div>
-        <button class="results-next-button">NEXT</button>
-        <div class="results-score-section">
+        <button id="results-next-btn" class="results-next-button" type="button">NEXT</button>
+        <div class="results-score-section" aria-live="polite" aria-atomic="true">
           <span class="results-score-value">0</span>
           <span class="results-score-label">OF 5,000 POINTS</span>
         </div>
@@ -126,7 +274,17 @@
     </div>
 
     <!-- End Summary -->
-    <section id="end-screen" class="hidden">
+    <section
+      id="end-screen"
+      class="hidden"
+      aria-labelledby="summary-heading"
+      aria-describedby="summary-description"
+    >
+    <!-- Screen read message -->
+      <h2 id="summary-heading" class="sr-only">Game summary</h2>
+      <p id="summary-description" class="sr-only">
+        Review your final score, all-time rank, and the map of each round before returning home or playing again.
+      </p>
 
       <!-- End Summary Leaderboard -->
       <aside id="end-leaderboard-box">
@@ -146,17 +304,18 @@
         </div>
       </aside>
 
-      <div id="summary-map"></div>
+      <!-- Guess Summary Map -->
+      <div id="summary-map" aria-label="Summary map of all round guesses and actual locations"></div>
       <div class="results-footer summary-footer">
-        <div class="results-distance-section">
+        <div class="results-distance-section" aria-live="polite" aria-atomic="true">
           <span class="results-distance-value" id="summary-rank">--</span>
           <span class="results-distance-label">GLOBAL RANKING</span>
         </div>
         <div class="summary-actions">
-          <button id="summary-home-btn" class="results-next-button secondary">HOME</button>
-          <button id="summary-next-btn" class="results-next-button">PLAY AGAIN</button>
+          <button id="summary-home-btn" class="results-next-button secondary" type="button">HOME</button>
+          <button id="summary-next-btn" class="results-next-button" type="button">PLAY AGAIN</button>
         </div>
-        <div class="results-score-section">
+        <div class="results-score-section" aria-live="polite" aria-atomic="true">
           <span class="results-score-value" id="final-score">0</span>
           <span class="results-score-label">OF 25,000 POINTS</span>
         </div>
@@ -166,6 +325,7 @@
     <!-- Accessibility -->
     <div
       id="announcer"
+      role="status"
       aria-live="polite"
       aria-atomic="true"
       class="sr-only"

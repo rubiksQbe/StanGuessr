@@ -9,12 +9,25 @@ const resultsView = document.getElementById("results-view");
 const guessMapPanel = document.getElementById("guess-map-panel");
 const guessButton = document.getElementById("guess-button");
 const summaryMapElement = document.getElementById("summary-map");
+const resultsNextButton = document.getElementById("results-next-btn");
+const authView = document.getElementById("auth-view");
+const authForm = document.getElementById("auth-form");
+const authNameInput = document.getElementById("auth-name");
+const authPasswordInput = document.getElementById("auth-password");
+const authTitle = document.getElementById("auth-title");
+const authSubtitle = document.getElementById("auth-subtitle");
+const authFeedback = document.getElementById("auth-feedback");
+const authSubmit = document.getElementById("auth-submit");
+const authSwitchText = document.getElementById("auth-switch-text");
+const authSwitchButton = document.getElementById("auth-switch-button");
 
 const tracker = document.getElementById("round-tracker");
 
 const STANFORD_CENTER = { lat: 37.4275, lng: -122.1697 };
 const MAX_POINTS = 5000;
 const DECAY_CONSTANT = 300;
+const TEARDROP =
+  "M 0,2 C -1,1 -1.2,0 -1.2,-0.3 C -1.2,-1.1 -0.6,-1.6 0,-1.6 C 0.6,-1.6 1.2,-1.1 1.2,-0.3 C 1.2,0 1,1 0,2 Z";
 
 /* Game variables. */
 let guessMap;
@@ -27,6 +40,7 @@ let summaryMap;
 /* User information. */
 let userId = null;
 let userName = "";
+let authMode = "signup";
 
 /* Round tracking. */
 const TOTAL_ROUNDS = 5;
@@ -71,6 +85,10 @@ function updateTimerDisplay() {
   const minutes = Math.floor(timeRemaining / 60);
   const seconds = timeRemaining % 60;
   timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  timerDisplay.setAttribute(
+    "aria-label",
+    `Time remaining ${minutes} minute${minutes === 1 ? "" : "s"} and ${seconds} second${seconds === 1 ? "" : "s"}`,
+  );
 }
 
 function onTimerExpire() {
@@ -125,7 +143,9 @@ async function startRound() {
     const excludeQuery = usedLocationIds.length
       ? `?exclude=${encodeURIComponent(usedLocationIds.join(","))}`
       : "";
-    const response = await fetch(BASE_API_URL + "/location/random" + excludeQuery);
+    const response = await fetch(
+      BASE_API_URL + "/location/random" + excludeQuery,
+    );
     if (!response.ok) {
       throw new Error("No unused locations available.");
     }
@@ -152,14 +172,14 @@ async function startRound() {
 }
 
 function endGame() {
-  const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0,);
-  
+  const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0);
   // Write score to db
   if (userId) {
     addGame(totalScore, userId);
   }
 
-  document.querySelector("#final-score").textContent = totalScore.toLocaleString();
+  document.querySelector("#final-score").textContent =
+    totalScore.toLocaleString();
   updateSummaryRank(totalScore);
 
   hideResults();
@@ -212,7 +232,9 @@ async function updateSummaryRank(totalScore) {
   rankElement.textContent = "...";
 
   try {
-    const response = await fetch(BASE_API_URL + `/leaderboard/rank/${totalScore}`);
+    const response = await fetch(
+      BASE_API_URL + `/leaderboard/rank/${totalScore}`,
+    );
     if (!response.ok) {
       throw new Error("Failed to load score rank.");
     }
@@ -232,10 +254,13 @@ function showHome() {
   gameView.classList.add("hidden");
   loadingScreen.classList.add("hidden");
   endScreen.classList.add("hidden");
+  authView.classList.add("hidden");
   homeScreen.classList.remove("hidden");
   document.querySelector("header").classList.remove("hidden");
   document.querySelector("footer").classList.remove("hidden");
   document.getElementById("leaderboard").classList.remove("hidden");
+  isAtTop = true;
+  updateLeaderboardButtonText();
   pullGlobalStats(globalStats);
   pullPersonalStats();
 }
@@ -276,11 +301,10 @@ function addGame(finalScore, user) {
 //     })
 //     .catch((error) => console.log(error));
 // }
-async function signup(name) {
+async function signup(formData) {
   const response = await fetch(BASE_API_URL + "/signup", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: new URLSearchParams(formData),
   });
 
   const data = await response.json();
@@ -293,11 +317,10 @@ async function signup(name) {
   userName = data.name;
 }
 
-async function login(name) {
+async function login(formData) {
   const response = await fetch(BASE_API_URL + "/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: new URLSearchParams(formData),
   });
 
   const data = await response.json();
@@ -312,13 +335,22 @@ async function login(name) {
 
 function updateWelcomeMessage() {
   const welcomeMsg = document.getElementById("welcome-msg");
+  const signupButton = document.getElementById("signup");
+  const loginButton = document.getElementById("login");
+  const logoutButton = document.getElementById("logout");
 
   if (userId && userName) {
     welcomeMsg.textContent = `Welcome, ${userName}!`;
     signMsg.textContent = "";
+    signupButton.classList.add("hidden");
+    loginButton.classList.add("hidden");
+    logoutButton.classList.remove("hidden");
   } else {
     welcomeMsg.textContent = "";
     signMsg.textContent = "Sign in to see stats";
+    signupButton.classList.remove("hidden");
+    loginButton.classList.remove("hidden");
+    logoutButton.classList.add("hidden");
   }
 }
 
@@ -327,7 +359,90 @@ function showLoading() {
   document.querySelector("header").classList.add("hidden");
   document.querySelector("footer").classList.add("hidden");
   document.getElementById("leaderboard").classList.add("hidden");
+  authView.classList.add("hidden");
   loadingScreen.classList.remove("hidden");
+}
+
+function setAuthFeedback(message, { success = false } = {}) {
+  authFeedback.textContent = message;
+  authFeedback.classList.toggle("success", success);
+}
+
+function updateAuthView() {
+  const isSignup = authMode === "signup";
+
+  authTitle.textContent = isSignup ? "Sign up" : "Log in";
+  authSubtitle.textContent = isSignup
+    ? "Create a StanGuessr username to save your best scores."
+    : "Enter your StanGuessr username to load your personal leaderboard.";
+  authSubmit.textContent = isSignup ? "Create account" : "Log in";
+  authPasswordInput.autocomplete = isSignup
+    ? "new-password"
+    : "current-password";
+  authSwitchText.textContent = isSignup
+    ? "Already have an account?"
+    : "Need an account?";
+  authSwitchButton.textContent = isSignup ? "Log in" : "Sign up";
+  authNameInput.value = "";
+  authPasswordInput.value = "";
+  setAuthFeedback("");
+}
+
+function showAuthView(mode) {
+  authMode = mode;
+  homeScreen.classList.add("hidden");
+  document.querySelector("header").classList.add("hidden");
+  document.querySelector("footer").classList.add("hidden");
+  document.getElementById("leaderboard").classList.add("hidden");
+  loadingScreen.classList.add("hidden");
+  gameView.classList.add("hidden");
+  resultsView.classList.add("hidden");
+  endScreen.classList.add("hidden");
+  authView.classList.remove("hidden");
+  updateAuthView();
+  authNameInput.focus();
+}
+
+function updateLeaderboardButtonText() {
+  if (isAtTop) {
+    leadboardBtn.textContent = "Leaderboard ↓";
+    leadboardBtn.setAttribute("aria-label", "Jump to leaderboard");
+    return;
+  }
+
+  leadboardBtn.textContent = "Leaderboard ↑";
+  leadboardBtn.setAttribute("aria-label", "Return to top of page");
+}
+
+function updateGuessButtonState() {
+  const isOpen = guessMapPanel.classList.contains("is-open");
+  const hasPin = Boolean(guessMarker);
+
+  guessButton.setAttribute("aria-expanded", String(isOpen));
+
+  if (hasPin) {
+    guessButton.textContent = "Guess";
+    guessButton.setAttribute("aria-label", "Submit your guess");
+    return;
+  }
+
+  guessButton.textContent = "Place pin on map";
+  guessButton.setAttribute("aria-label", "Open the guess map to place a pin");
+}
+
+function updateResultsNextButton() {
+  if (currentRound < TOTAL_ROUNDS) {
+    resultsNextButton.setAttribute(
+      "aria-label",
+      `Go to round ${currentRound + 1} after reviewing this result`,
+    );
+    return;
+  }
+
+  resultsNextButton.setAttribute(
+    "aria-label",
+    "View the final game summary after reviewing this result",
+  );
 }
 
 function resetGame() {
@@ -387,6 +502,57 @@ function hideRoundTracker() {
 // GUESS RESULTS
 // ==========================================
 
+function createActualMarkerIcon() {
+  const dpr = window.devicePixelRatio || 1;
+  const s = 9;
+  const w = Math.ceil(1.2 * s * 2);
+  const h = Math.ceil(3.6 * s);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+
+  const cx = w / 2;
+  const base = h - 2 * s;
+
+  function px(x, y) {
+    return [cx + x * s, base + y * s];
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(...px(0, 2));
+  ctx.bezierCurveTo(...px(-1, 1), ...px(-1.2, 0), ...px(-1.2, -0.3));
+  ctx.bezierCurveTo(...px(-1.2, -1.1), ...px(-0.6, -1.6), ...px(0, -1.6));
+  ctx.bezierCurveTo(...px(0.6, -1.6), ...px(1.2, -1.1), ...px(1.2, -0.3));
+  ctx.bezierCurveTo(...px(1.2, 0), ...px(1, 1), ...px(0, 2));
+  ctx.closePath();
+
+  ctx.fillStyle = "#51cf66";
+  ctx.fill();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  const [hx, hy] = px(0, -0.2); // was -0.9, shifted down
+  ctx.beginPath();
+  ctx.moveTo(hx - 4, hy);
+  ctx.lineTo(hx - 1, hy + 3);
+  ctx.lineTo(hx + 5, hy - 4); // was -5/-6, slightly smaller
+  ctx.strokeStyle = "#1f3a1f";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  return {
+    url: canvas.toDataURL(),
+    scaledSize: new google.maps.Size(w, h),
+    anchor: new google.maps.Point(w / 2, h),
+  };
+}
+
 function showResults(guessPosition, actualPosition, score, distanceMeters) {
   const distanceElement = resultsView.querySelector(".results-distance-value");
   const scoreElement = resultsView.querySelector(".results-score-value");
@@ -396,12 +562,15 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
 
   // Update footer values
   distanceElement.textContent =
-    guessPosition && distanceMeters !== null ? formatDistance(distanceMeters) : "No guess";
+    guessPosition && distanceMeters !== null
+      ? formatDistance(distanceMeters)
+      : "No guess";
   scoreElement.textContent = score.toLocaleString();
 
   // Hide game view, show results view
   gameView.classList.add("hidden");
   resultsView.classList.remove("hidden");
+  updateResultsNextButton();
 
   // Initialize results map
   // I used AI to help me figure out how to use the google maps API
@@ -421,29 +590,23 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
       map: resultsMap,
       title: "Your guess",
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
+        path: TEARDROP,
+        scale: 9,
         fillColor: "#8C1515",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 3,
+        strokeWeight: 1,
+        strokeOpacity: 1,
+        anchor: new google.maps.Point(0, 2),
       },
     });
   }
 
-  // Add actual location marker (green pin)
   new google.maps.Marker({
     position: actualPosition,
     map: resultsMap,
     title: "Actual location",
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: "#51cf66",
-      fillOpacity: 1,
-      strokeColor: "#ffffff",
-      strokeWeight: 3,
-    },
+    icon: createActualMarkerIcon(),
   });
 
   // Draw dotted line between guess and actual location - only if a guess was made
@@ -481,10 +644,17 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
   }
 }
 
-function recordRoundResult(guessPosition, actualPosition, score, distanceMeters) {
+function recordRoundResult(
+  guessPosition,
+  actualPosition,
+  score,
+  distanceMeters,
+) {
   const roundIndex = currentRound - 1;
   const distanceFeet =
-    guessPosition && distanceMeters !== null ? Math.round(distanceMeters * 3.28084) : null;
+    guessPosition && distanceMeters !== null
+      ? Math.round(distanceMeters * 3.28084)
+      : null;
   const guess = guessPosition
     ? { lat: guessPosition.lat(), lng: guessPosition.lng() }
     : null;
@@ -536,12 +706,14 @@ function renderSummaryMap() {
         fontWeight: "900",
       },
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 11,
+        path: TEARDROP,
+        scale: 9,
         fillColor: "#51cf66",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 3,
+        strokeWeight: 1,
+        strokeOpacity: 1,
+        anchor: new google.maps.Point(0, 2),
       },
     });
     bounds.extend(actualPosition);
@@ -561,12 +733,14 @@ function renderSummaryMap() {
         fontWeight: "900",
       },
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 11,
+        path: TEARDROP,
+        scale: 9,
         fillColor: "#8C1515",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 3,
+        strokeWeight: 1,
+        strokeOpacity: 1,
+        anchor: new google.maps.Point(0, 2),
       },
     });
 
@@ -688,7 +862,7 @@ function placeGuess(position) {
   guessMarker.setPosition(position);
   guessMapPanel.classList.remove("is-open");
   guessMapPanel.classList.add("has-pin");
-  guessButton.textContent = "Guess";
+  updateGuessButtonState();
 }
 
 function resetGuess() {
@@ -699,7 +873,7 @@ function resetGuess() {
 
   guessMapPanel.classList.remove("is-open");
   guessMapPanel.classList.remove("has-pin");
-  guessButton.textContent = "Place pin on map";
+  updateGuessButtonState();
 }
 
 function resizeGuessMap() {
@@ -714,6 +888,7 @@ function resizeGuessMap() {
 
 function collapseGuessMap() {
   guessMapPanel.classList.remove("is-open");
+  updateGuessButtonState();
 }
 
 // ==========================================
@@ -731,7 +906,7 @@ function getTimeMultiplier() {
     return 1.0;
   }
   // After 10 seconds: multiplier decreases from 0.99 down to 0.50
-  return 0.50 + (timeRemaining * 0.01);
+  return 0.5 + timeRemaining * 0.01;
 }
 
 /* Calculate distance between two points using Haversine formula
@@ -793,16 +968,16 @@ leadboardBtn.addEventListener("click", toggleLeadboard);
 function toggleLeadboard() {
   if (isAtTop) {
     leaderboard.scrollIntoView({ behavior: "smooth" });
-    leadboardBtn.textContent = "Leaderboard ↓";
     isAtTop = false;
   } else {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-    leadboardBtn.textContent = "Leaderboard ↑";
     isAtTop = true;
   }
+
+  updateLeaderboardButtonText();
 }
 
 /* Populate leaderboard stats. */
@@ -846,32 +1021,68 @@ function pullPersonalStats() {
 function setupAuthButtons() {
   const signupButton = document.getElementById("signup");
   const loginButton = document.getElementById("login");
+  const logoutButton = document.getElementById("logout");
+  const authBackButton = document.getElementById("auth-back-button");
 
-  signupButton.addEventListener("click", async () => {
-    const name = prompt("Choose a username:");
-    if (!name) return;
-
-    try {
-      await signup(name.trim());
-      updateWelcomeMessage();
-      pullPersonalStats();
-      alert("Account created.");
-    } catch (error) {
-      alert(error.message);
-    }
+  signupButton.addEventListener("click", () => showAuthView("signup"));
+  loginButton.addEventListener("click", () => showAuthView("login"));
+  logoutButton.addEventListener("click", () => {
+    userId = null;
+    userName = "";
+    updateWelcomeMessage();
+    pullPersonalStats();
+    showHome();
+  });
+  authBackButton.addEventListener("click", showHome);
+  authSwitchButton.addEventListener("click", () => {
+    authMode = authMode === "signup" ? "login" : "signup";
+    updateAuthView();
+    authNameInput.focus();
   });
 
-  loginButton.addEventListener("click", async () => {
-    const name = prompt("Enter your username:");
-    if (!name) return;
+  authForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const name = authNameInput.value.trim();
+    const password = authPasswordInput.value;
+    const formData = new FormData(authForm);
+
+    if (!name) {
+      setAuthFeedback("Enter a username.");
+      authNameInput.focus();
+      return;
+    }
+
+    if (!password) {
+      setAuthFeedback("Enter a password.");
+      authPasswordInput.focus();
+      return;
+    }
+
+    authSubmit.disabled = true;
+    setAuthFeedback(
+      authMode === "signup" ? "Creating account..." : "Logging in...",
+    );
 
     try {
-      await login(name.trim());
+      if (authMode === "signup") {
+        await signup(formData);
+        setAuthFeedback("Account created. Redirecting home...", {
+          success: true,
+        });
+      } else {
+        await login(formData);
+        setAuthFeedback("Login successful. Redirecting home...", {
+          success: true,
+        });
+      }
+
       updateWelcomeMessage();
       pullPersonalStats();
-      alert("Logged in.");
+      window.setTimeout(showHome, 400);
     } catch (error) {
-      alert(error.message);
+      setAuthFeedback(error.message || "Something went wrong.");
+    } finally {
+      authSubmit.disabled = false;
     }
   });
 }
@@ -881,6 +1092,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const playButton = document.querySelector(".play-button");
 
   updateWelcomeMessage();
+  updateLeaderboardButtonText();
+  updateGuessButtonState();
+  updateResultsNextButton();
   pullPersonalStats(); // for leaderboard
   pullGlobalStats(globalStats);
   setupAuthButtons();
@@ -890,6 +1104,7 @@ document.addEventListener("DOMContentLoaded", () => {
   guessButton.addEventListener("click", () => {
     if (!guessMarker) {
       guessMapPanel.classList.add("is-open");
+      updateGuessButtonState();
       resizeGuessMap();
       return;
     }
@@ -921,23 +1136,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* Results page next button */
-  document
-    .querySelector(".results-next-button")
-    .addEventListener("click", () => {
-
-      if (currentRound < TOTAL_ROUNDS) {
-        // Advance to next round
-        hideResults();
-        currentRound++;
-        startRound();
-      } else {
-        // Game over - start new game
-        // TODO: display end game summary
-        endGame();
-        //alert("Total Score: " + totalScore + "\nPlay Again?");
-        //startGame();
-      }
-    });
+  resultsNextButton.addEventListener("click", () => {
+    if (currentRound < TOTAL_ROUNDS) {
+      // Advance to next round
+      hideResults();
+      currentRound++;
+      startRound();
+    } else {
+      // Game over - start new game
+      // TODO: display end game summary
+      endGame();
+      //alert("Total Score: " + totalScore + "\nPlay Again?");
+      //startGame();
+    }
+  });
 
   document.addEventListener("click", (event) => {
     if (!guessMapPanel.contains(event.target)) {
