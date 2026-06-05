@@ -14,6 +14,8 @@ const tracker = document.getElementById("round-tracker");
 const STANFORD_CENTER = { lat: 37.4275, lng: -122.1697 };
 const MAX_POINTS = 5000;
 const DECAY_CONSTANT = 300;
+const TEARDROP =
+  "M 0,2 C -1,1 -1.2,0 -1.2,-0.3 C -1.2,-1.1 -0.6,-1.6 0,-1.6 C 0.6,-1.6 1.2,-1.1 1.2,-0.3 C 1.2,0 1,1 0,2 Z";
 
 let guessMap;
 let guessMarker;
@@ -21,10 +23,6 @@ let currentLocation;
 let googleMapsPromise;
 let resultsMap;
 let summaryMap;
-/* Dummy Account [TO BE REMOVED]. */
-// let userId = 1;
-// let userName = "Alice"; // TODO: signin updates
-/*                                */
 let userId = null;
 let userName = "";
 
@@ -125,7 +123,9 @@ async function startRound() {
     const excludeQuery = usedLocationIds.length
       ? `?exclude=${encodeURIComponent(usedLocationIds.join(","))}`
       : "";
-    const response = await fetch(BASE_API_URL + "/location/random" + excludeQuery);
+    const response = await fetch(
+      BASE_API_URL + "/location/random" + excludeQuery,
+    );
     if (!response.ok) {
       throw new Error("No unused locations available.");
     }
@@ -152,13 +152,14 @@ async function startRound() {
 }
 
 function endGame() {
-  const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0,);
+  const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0);
   // Write score to db
   if (userId) {
     addGame(totalScore, userId);
   }
 
-  document.querySelector("#final-score").textContent = totalScore.toLocaleString();
+  document.querySelector("#final-score").textContent =
+    totalScore.toLocaleString();
   updateSummaryRank(totalScore);
 
   hideResults();
@@ -172,7 +173,9 @@ async function updateSummaryRank(totalScore) {
   rankElement.textContent = "...";
 
   try {
-    const response = await fetch(BASE_API_URL + `/leaderboard/rank/${totalScore}`);
+    const response = await fetch(
+      BASE_API_URL + `/leaderboard/rank/${totalScore}`,
+    );
     if (!response.ok) {
       throw new Error("Failed to load score rank.");
     }
@@ -347,6 +350,57 @@ function hideRoundTracker() {
 // GUESS RESULTS
 // ==========================================
 
+function createActualMarkerIcon() {
+  const dpr = window.devicePixelRatio || 1;
+  const s = 9;
+  const w = Math.ceil(1.2 * s * 2);
+  const h = Math.ceil(3.6 * s);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+
+  const cx = w / 2;
+  const base = h - 2 * s;
+
+  function px(x, y) {
+    return [cx + x * s, base + y * s];
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(...px(0, 2));
+  ctx.bezierCurveTo(...px(-1, 1), ...px(-1.2, 0), ...px(-1.2, -0.3));
+  ctx.bezierCurveTo(...px(-1.2, -1.1), ...px(-0.6, -1.6), ...px(0, -1.6));
+  ctx.bezierCurveTo(...px(0.6, -1.6), ...px(1.2, -1.1), ...px(1.2, -0.3));
+  ctx.bezierCurveTo(...px(1.2, 0), ...px(1, 1), ...px(0, 2));
+  ctx.closePath();
+
+  ctx.fillStyle = "#51cf66";
+  ctx.fill();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  const [hx, hy] = px(0, -0.2); // was -0.9, shifted down
+  ctx.beginPath();
+  ctx.moveTo(hx - 4, hy);
+  ctx.lineTo(hx - 1, hy + 3);
+  ctx.lineTo(hx + 5, hy - 4); // was -5/-6, slightly smaller
+  ctx.strokeStyle = "#1f3a1f";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  return {
+    url: canvas.toDataURL(),
+    scaledSize: new google.maps.Size(w, h),
+    anchor: new google.maps.Point(w / 2, h),
+  };
+}
+
 function showResults(guessPosition, actualPosition, score, distanceMeters) {
   const distanceElement = resultsView.querySelector(".results-distance-value");
   const scoreElement = resultsView.querySelector(".results-score-value");
@@ -356,7 +410,9 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
 
   // Update footer values
   distanceElement.textContent =
-    guessPosition && distanceMeters !== null ? formatDistance(distanceMeters) : "No guess";
+    guessPosition && distanceMeters !== null
+      ? formatDistance(distanceMeters)
+      : "No guess";
   scoreElement.textContent = score.toLocaleString();
 
   // Hide game view, show results view
@@ -381,29 +437,23 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
       map: resultsMap,
       title: "Your guess",
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
+        path: TEARDROP,
+        scale: 9,
         fillColor: "#8C1515",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 3,
+        strokeWeight: 1,
+        strokeOpacity: 1,
+        anchor: new google.maps.Point(0, 2),
       },
     });
   }
 
-  // Add actual location marker (green pin)
   new google.maps.Marker({
     position: actualPosition,
     map: resultsMap,
     title: "Actual location",
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: "#51cf66",
-      fillOpacity: 1,
-      strokeColor: "#ffffff",
-      strokeWeight: 3,
-    },
+    icon: createActualMarkerIcon(),
   });
 
   // Draw dotted line between guess and actual location - only if a guess was made
@@ -441,10 +491,17 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
   }
 }
 
-function recordRoundResult(guessPosition, actualPosition, score, distanceMeters) {
+function recordRoundResult(
+  guessPosition,
+  actualPosition,
+  score,
+  distanceMeters,
+) {
   const roundIndex = currentRound - 1;
   const distanceFeet =
-    guessPosition && distanceMeters !== null ? Math.round(distanceMeters * 3.28084) : null;
+    guessPosition && distanceMeters !== null
+      ? Math.round(distanceMeters * 3.28084)
+      : null;
   const guess = guessPosition
     ? { lat: guessPosition.lat(), lng: guessPosition.lng() }
     : null;
@@ -496,12 +553,14 @@ function renderSummaryMap() {
         fontWeight: "900",
       },
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 11,
+        path: TEARDROP,
+        scale: 9,
         fillColor: "#51cf66",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 3,
+        strokeWeight: 1,
+        strokeOpacity: 1,
+        anchor: new google.maps.Point(0, 2),
       },
     });
     bounds.extend(actualPosition);
@@ -521,12 +580,14 @@ function renderSummaryMap() {
         fontWeight: "900",
       },
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 11,
+        path: TEARDROP,
+        scale: 9,
         fillColor: "#8C1515",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 3,
+        strokeWeight: 1,
+        strokeOpacity: 1,
+        anchor: new google.maps.Point(0, 2),
       },
     });
 
@@ -691,7 +752,7 @@ function getTimeMultiplier() {
     return 1.0;
   }
   // After 10 seconds: multiplier decreases from 0.99 down to 0.50
-  return 0.50 + (timeRemaining * 0.01);
+  return 0.5 + timeRemaining * 0.01;
 }
 
 /* Calculate distance between two points using Haversine formula
@@ -884,7 +945,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .querySelector(".results-next-button")
     .addEventListener("click", () => {
-
       if (currentRound < TOTAL_ROUNDS) {
         // Advance to next round
         hideResults();
