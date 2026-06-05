@@ -8,6 +8,7 @@ const resultsView = document.getElementById("results-view");
 const guessMapPanel = document.getElementById("guess-map-panel");
 const guessButton = document.getElementById("guess-button");
 const summaryMapElement = document.getElementById("summary-map");
+const resultsNextButton = document.getElementById("results-next-btn");
 
 const tracker = document.getElementById("round-tracker");
 
@@ -69,6 +70,10 @@ function updateTimerDisplay() {
   const minutes = Math.floor(timeRemaining / 60);
   const seconds = timeRemaining % 60;
   timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  timerDisplay.setAttribute(
+    "aria-label",
+    `Time remaining ${minutes} minute${minutes === 1 ? "" : "s"} and ${seconds} second${seconds === 1 ? "" : "s"}`,
+  );
 }
 
 function onTimerExpire() {
@@ -199,6 +204,8 @@ function showHome() {
   document.querySelector("header").classList.remove("hidden");
   document.querySelector("footer").classList.remove("hidden");
   document.getElementById("leaderboard").classList.remove("hidden");
+  isAtTop = true;
+  updateLeaderboardButtonText();
   pullGlobalStats();
   pullPersonalStats();
 }
@@ -291,6 +298,48 @@ function showLoading() {
   document.querySelector("footer").classList.add("hidden");
   document.getElementById("leaderboard").classList.add("hidden");
   loadingScreen.classList.remove("hidden");
+}
+
+function updateLeaderboardButtonText() {
+  if (isAtTop) {
+    leadboardBtn.textContent = "Leaderboard ↓";
+    leadboardBtn.setAttribute("aria-label", "Jump to leaderboard");
+    return;
+  }
+
+  leadboardBtn.textContent = "Leaderboard ↑";
+  leadboardBtn.setAttribute("aria-label", "Return to top of page");
+}
+
+function updateGuessButtonState() {
+  const isOpen = guessMapPanel.classList.contains("is-open");
+  const hasPin = Boolean(guessMarker);
+
+  guessButton.setAttribute("aria-expanded", String(isOpen));
+
+  if (hasPin) {
+    guessButton.textContent = "Guess";
+    guessButton.setAttribute("aria-label", "Submit your guess");
+    return;
+  }
+
+  guessButton.textContent = "Place pin on map";
+  guessButton.setAttribute("aria-label", "Open the guess map to place a pin");
+}
+
+function updateResultsNextButton() {
+  if (currentRound < TOTAL_ROUNDS) {
+    resultsNextButton.setAttribute(
+      "aria-label",
+      `Go to round ${currentRound + 1} after reviewing this result`,
+    );
+    return;
+  }
+
+  resultsNextButton.setAttribute(
+    "aria-label",
+    "View the final game summary after reviewing this result",
+  );
 }
 
 function resetGame() {
@@ -418,6 +467,7 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
   // Hide game view, show results view
   gameView.classList.add("hidden");
   resultsView.classList.remove("hidden");
+  updateResultsNextButton();
 
   // Initialize results map
   // I used AI to help me figure out how to use the google maps API
@@ -709,7 +759,7 @@ function placeGuess(position) {
   guessMarker.setPosition(position);
   guessMapPanel.classList.remove("is-open");
   guessMapPanel.classList.add("has-pin");
-  guessButton.textContent = "Guess";
+  updateGuessButtonState();
 }
 
 function resetGuess() {
@@ -720,7 +770,7 @@ function resetGuess() {
 
   guessMapPanel.classList.remove("is-open");
   guessMapPanel.classList.remove("has-pin");
-  guessButton.textContent = "Place pin on map";
+  updateGuessButtonState();
 }
 
 function resizeGuessMap() {
@@ -735,6 +785,7 @@ function resizeGuessMap() {
 
 function collapseGuessMap() {
   guessMapPanel.classList.remove("is-open");
+  updateGuessButtonState();
 }
 
 // ==========================================
@@ -814,16 +865,16 @@ leadboardBtn.addEventListener("click", toggleLeadboard);
 function toggleLeadboard() {
   if (isAtTop) {
     leaderboard.scrollIntoView({ behavior: "smooth" });
-    leadboardBtn.textContent = "Leaderboard ↓";
     isAtTop = false;
   } else {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-    leadboardBtn.textContent = "Leaderboard ↑";
     isAtTop = true;
   }
+
+  updateLeaderboardButtonText();
 }
 
 /* Populate leaderboard stats. */
@@ -902,6 +953,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const playButton = document.querySelector(".play-button");
 
   updateWelcomeMessage();
+  updateLeaderboardButtonText();
+  updateGuessButtonState();
+  updateResultsNextButton();
   pullPersonalStats(); // for leaderboard
   pullGlobalStats();
   setupAuthButtons();
@@ -911,6 +965,7 @@ document.addEventListener("DOMContentLoaded", () => {
   guessButton.addEventListener("click", () => {
     if (!guessMarker) {
       guessMapPanel.classList.add("is-open");
+      updateGuessButtonState();
       resizeGuessMap();
       return;
     }
@@ -942,22 +997,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* Results page next button */
-  document
-    .querySelector(".results-next-button")
-    .addEventListener("click", () => {
-      if (currentRound < TOTAL_ROUNDS) {
-        // Advance to next round
-        hideResults();
-        currentRound++;
-        startRound();
-      } else {
-        // Game over - start new game
-        // TODO: display end game summary
-        endGame();
-        //alert("Total Score: " + totalScore + "\nPlay Again?");
-        //startGame();
-      }
-    });
+  resultsNextButton.addEventListener("click", () => {
+    if (currentRound < TOTAL_ROUNDS) {
+      // Advance to next round
+      hideResults();
+      currentRound++;
+      startRound();
+    } else {
+      // Game over - start new game
+      // TODO: display end game summary
+      endGame();
+      //alert("Total Score: " + totalScore + "\nPlay Again?");
+      //startGame();
+    }
+  });
 
   document.addEventListener("click", (event) => {
     if (!guessMapPanel.contains(event.target)) {
