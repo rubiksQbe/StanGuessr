@@ -16,7 +16,7 @@ db.exec(`
     gameid INTEGER PRIMARY KEY AUTOINCREMENT,
     score INTEGER NOT NULL,
     userid INTEGER NOT NULL,
-    FOREIGN KEY (userid) REFERENCES users(userid)
+    FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
   );
 `);
 
@@ -42,6 +42,12 @@ export function createUser(name) {
 
   const result = db.prepare(`INSERT INTO users (name) VALUES (?)`).run(name);
   return { userid: result.lastInsertRowid, name };
+}
+
+// Deletes user account and their games
+export function deleteUser(userid) {
+    db.prepare(`DELETE FROM games WHERE userid = ?;`).run(userid);
+    return db.prepare(`DELETE FROM users WHERE userid = ?`).run(userid);
 }
 
 // Returns limit number of top global scores

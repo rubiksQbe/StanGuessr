@@ -127,11 +127,30 @@
 
     <!-- End Summary -->
     <section id="end-screen" class="hidden">
+
+      <!-- End Summary Leaderboard -->
+      <aside id="end-leaderboard-box">
+        <div id="lead-bar">
+          <div id="lead-bar-left">
+            <button id="hide-lead-btn">◂</button>
+            <p class="aside-title">LEADERBOARD</p>
+          </div>
+          <button id="drop-lead-btn">+</button>
+        </div>
+        <div id="end-leaderboard" class="hidden">
+          <div id="end-lead-header">
+            <img src="./media/stanford-seal.png" alt="Stanford Seal">
+            <h3>Global</h3>
+          </div>
+          <ol id="end-leaderboard-list"></ol>
+        </div>
+      </aside>
+
       <div id="summary-map"></div>
       <div class="results-footer summary-footer">
         <div class="results-distance-section">
           <span class="results-distance-value" id="summary-rank">--</span>
-          <span class="results-distance-label">ALL TIME SCORE</span>
+          <span class="results-distance-label">GLOBAL RANKING</span>
         </div>
         <div class="summary-actions">
           <button id="summary-home-btn" class="results-next-button secondary">HOME</button>

@@ -2,6 +2,7 @@ const BASE_API_URL = "http://localhost:3001/api";
 
 const homeScreen = document.querySelector("main");
 const endScreen = document.querySelector("#end-screen");
+const end_lead_list = document.querySelector("#end-leaderboard-list");
 const loadingScreen = document.getElementById("loading-screen");
 const gameView = document.getElementById("game-view");
 const resultsView = document.getElementById("results-view");
@@ -15,16 +16,15 @@ const STANFORD_CENTER = { lat: 37.4275, lng: -122.1697 };
 const MAX_POINTS = 5000;
 const DECAY_CONSTANT = 300;
 
+/* Game variables. */
 let guessMap;
 let guessMarker;
 let currentLocation;
 let googleMapsPromise;
 let resultsMap;
 let summaryMap;
-/* Dummy Account [TO BE REMOVED]. */
-// let userId = 1;
-// let userName = "Alice"; // TODO: signin updates
-/*                                */
+
+/* User information. */
 let userId = null;
 let userName = "";
 
@@ -153,6 +153,7 @@ async function startRound() {
 
 function endGame() {
   const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0,);
+  
   // Write score to db
   if (userId) {
     addGame(totalScore, userId);
@@ -165,7 +166,46 @@ function endGame() {
   hideRoundTracker();
   endScreen.classList.remove("hidden");
   renderSummaryMap();
+  pullGlobalStats(end_lead_list);
 }
+
+// End game leaderboard buttons
+const drop_lead_btn = document.querySelector("#drop-lead-btn");
+const hide_lead_btn = document.querySelector("#hide-lead-btn");
+const end_leaderboard = document.querySelector("#end-leaderboard");
+const lead_bar = document.querySelector("#lead-bar");
+
+// Drop down leaderboard
+drop_lead_btn.addEventListener("click", () => {
+  if (drop_lead_btn.textContent === "-" || hide_lead_btn.textContent === "▴") {
+    drop_lead_btn.textContent = "+";
+    end_leaderboard.classList.add("hidden");
+  } else {
+    drop_lead_btn.textContent = "-";
+    end_leaderboard.classList.remove("hidden");
+  }
+});
+
+// Hide leaderboard
+hide_lead_btn.addEventListener("click", ()=> {
+  if (hide_lead_btn.textContent === "◂") {
+    lead_bar.classList.add("lead-bar-rotated");
+    hide_lead_btn.textContent = "▴";
+    
+    drop_lead_btn.classList.add("hidden");
+    end_leaderboard.classList.add("hidden");
+  } else {
+    lead_bar.classList.remove("lead-bar-rotated");
+    hide_lead_btn.textContent = "◂";
+
+    drop_lead_btn.classList.remove("hidden");
+    if (drop_lead_btn.textContent === "-") {
+      end_leaderboard.classList.remove("hidden");
+    }
+    
+  }
+  
+});
 
 async function updateSummaryRank(totalScore) {
   const rankElement = document.querySelector("#summary-rank");
@@ -196,7 +236,7 @@ function showHome() {
   document.querySelector("header").classList.remove("hidden");
   document.querySelector("footer").classList.remove("hidden");
   document.getElementById("leaderboard").classList.remove("hidden");
-  pullGlobalStats();
+  pullGlobalStats(globalStats);
   pullPersonalStats();
 }
 
@@ -766,15 +806,15 @@ function toggleLeadboard() {
 }
 
 /* Populate leaderboard stats. */
-function pullGlobalStats() {
+function pullGlobalStats(elem) {
   fetch(BASE_API_URL + `/leaderboard/${limit}`)
     .then((response) => response.json())
     .then((data) => {
-      globalStats.replaceChildren();
+      elem.replaceChildren();
       data.forEach((entry, i) => {
         let li = document.createElement("li");
         li.textContent = `${data[i].name} — ${data[i].score} pts`;
-        globalStats.appendChild(li);
+        elem.appendChild(li);
       });
     })
     .catch((error) => console.log(error));
@@ -842,7 +882,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateWelcomeMessage();
   pullPersonalStats(); // for leaderboard
-  pullGlobalStats();
+  pullGlobalStats(globalStats);
   setupAuthButtons();
   playButton.addEventListener("click", startGame);
   guessMapPanel.addEventListener("mouseenter", resizeGuessMap);

@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { addUser, addGameScore, getGlobalTopScores, getScoreRank, getUserTopScores, getUserByName, createUser } from "./db.js";
+import { addUser, addGameScore, getGlobalTopScores, getScoreRank, getUserTopScores, getUserByName, createUser, deleteUser } from "./db.js";
 
 
 const app = express();
@@ -168,7 +168,7 @@ app.post("/api/end-game", (req,res) => {
   res.status(201).json(newGame);
 });
 
-// Adding user data
+// Adding new user
 app.post("/api/users", (req, res) => {
   const { name } = req.body;
 
