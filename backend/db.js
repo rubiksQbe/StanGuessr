@@ -1,14 +1,27 @@
 import DatabaseSync from "better-sqlite3";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 const db = new DatabaseSync("./guesser.db");
+
+const PASSWORD_KEY_LENGTH = 64;
 
 // Create user table (userid, name)
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     userid INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    password_hash TEXT
   );
 `);
+
+const userColumns = db.prepare(`PRAGMA table_info(users)`).all();
+const hasPasswordHashColumn = userColumns.some(
+  (column) => column.name === "password_hash",
+);
+
+if (!hasPasswordHashColumn) {
+  db.exec(`ALTER TABLE users ADD COLUMN password_hash TEXT;`);
+}
 
 // Create game table (gameid, score, userid)
 db.exec(`
@@ -23,6 +36,35 @@ db.exec(`
 // Enable foreign key checking
 db.exec('PRAGMA foreign_keys = ON;');
 
+function hashPassword(password) {
+  const salt = randomBytes(16).toString("hex");
+  const derivedKey = scryptSync(password, salt, PASSWORD_KEY_LENGTH).toString(
+    "hex",
+  );
+  return `${salt}:${derivedKey}`;
+}
+
+function verifyPassword(password, passwordHash) {
+  if (!passwordHash) {
+    return false;
+  }
+
+  const [salt, storedKey] = passwordHash.split(":");
+
+  if (!salt || !storedKey) {
+    return false;
+  }
+
+  const derivedKey = scryptSync(password, salt, PASSWORD_KEY_LENGTH);
+  const storedKeyBuffer = Buffer.from(storedKey, "hex");
+
+  if (derivedKey.length !== storedKeyBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(derivedKey, storedKeyBuffer);
+}
+
 // Adds new user, returns their userid and name
 export function addUser(useName) {
     const result = db.prepare(`INSERT INTO users (name) VALUES (?)`).run(useName);
@@ -36,11 +78,14 @@ export function addGameScore(finalScore, user) {
 }
 
 // Creates a new user to add  to user table
-export function createUser(name) {
+export function createUser(name, password) {
   const existing = getUserByName(name);
   if (existing) return null;
 
-  const result = db.prepare(`INSERT INTO users (name) VALUES (?)`).run(name);
+  const passwordHash = hashPassword(password);
+  const result = db
+    .prepare(`INSERT INTO users (name, password_hash) VALUES (?, ?)`)
+    .run(name, passwordHash);
   return { userid: result.lastInsertRowid, name };
 }
 
@@ -66,8 +111,20 @@ export function getScoreRank(score) {
 // Returns the user's name
 export function getUserByName(name) {
   return db
-    .prepare(`SELECT userid, name FROM users WHERE LOWER(name) = LOWER(?)`)
+    .prepare(
+      `SELECT userid, name, password_hash FROM users WHERE LOWER(name) = LOWER(?)`,
+    )
     .get(name);
+}
+
+export function verifyUserCredentials(name, password) {
+  const user = getUserByName(name);
+
+  if (!user || !verifyPassword(password, user.password_hash)) {
+    return null;
+  }
+
+  return { userid: user.userid, name: user.name };
 }
 
 // Returns limit number of top user scores

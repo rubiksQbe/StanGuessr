@@ -10,8 +10,8 @@ import {
   getGlobalTopScores,
   getScoreRank,
   getUserTopScores,
-  getUserByName,
   createUser,
+  verifyUserCredentials,
 } from "./db.js";
 
 const app = express();
@@ -114,6 +114,31 @@ const stanfordLocations = [
     name: "Stanford Beach Volleyball Stadium",
   },
   { lat: 37.4224638, lng: -122.1566591, name: "EVGR A" },
+  {
+    lat: 37.4239285,
+    lng: -122.1658509,
+    name: "In between Sally Ride and Casa Zapata",
+  },
+  {
+    lat: 37.4242163,
+    lng: -122.178309,
+    name: "Governor's Corner Housing Center",
+  },
+  {
+    lat: 37.435877,
+    lng: -122.1711069,
+    name: "Stanford Mausoleum",
+  },
+  {
+    lat: 37.4236261,
+    lng: -122.173915,
+    name: "Denning House",
+  },
+  {
+    lat: 37.4298243,
+    lng: -122.1730244,
+    name: "Outside Gates Building",
+  },
 ].map((location, index) => ({ id: index + 1, ...location }));
 
 app.get("/", (req, res) => {
@@ -221,12 +246,17 @@ app.post("/api/users", (req, res) => {
 // Creating a user's account
 app.post("/api/signup", (req, res) => {
   const name = req.body.name?.trim();
+  const password = req.body.password?.trim();
 
   if (!name) {
     return res.status(400).json({ error: "Name is required" });
   }
 
-  const newUser = createUser(name);
+  if (!password) {
+    return res.status(400).json({ error: "Password is required" });
+  }
+
+  const newUser = createUser(name, password);
 
   if (!newUser) {
     return res.status(409).json({ error: "Name already taken" });
@@ -238,15 +268,20 @@ app.post("/api/signup", (req, res) => {
 // Logging into a user's account
 app.post("/api/login", (req, res) => {
   const name = req.body.name?.trim();
+  const password = req.body.password?.trim();
 
   if (!name) {
     return res.status(400).json({ error: "Name is required" });
   }
 
-  const user = getUserByName(name);
+  if (!password) {
+    return res.status(400).json({ error: "Password is required" });
+  }
+
+  const user = verifyUserCredentials(name, password);
 
   if (!user) {
-    return res.status(404).json({ error: "No user with that name" });
+    return res.status(401).json({ error: "Incorrect username or password" });
   }
 
   res.json(user);

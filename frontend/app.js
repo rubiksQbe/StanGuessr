@@ -9,6 +9,16 @@ const guessMapPanel = document.getElementById("guess-map-panel");
 const guessButton = document.getElementById("guess-button");
 const summaryMapElement = document.getElementById("summary-map");
 const resultsNextButton = document.getElementById("results-next-btn");
+const authView = document.getElementById("auth-view");
+const authForm = document.getElementById("auth-form");
+const authNameInput = document.getElementById("auth-name");
+const authPasswordInput = document.getElementById("auth-password");
+const authTitle = document.getElementById("auth-title");
+const authSubtitle = document.getElementById("auth-subtitle");
+const authFeedback = document.getElementById("auth-feedback");
+const authSubmit = document.getElementById("auth-submit");
+const authSwitchText = document.getElementById("auth-switch-text");
+const authSwitchButton = document.getElementById("auth-switch-button");
 
 const tracker = document.getElementById("round-tracker");
 
@@ -26,6 +36,7 @@ let resultsMap;
 let summaryMap;
 let userId = null;
 let userName = "";
+let authMode = "signup";
 
 /* Round tracking. */
 const TOTAL_ROUNDS = 5;
@@ -200,6 +211,7 @@ function showHome() {
   gameView.classList.add("hidden");
   loadingScreen.classList.add("hidden");
   endScreen.classList.add("hidden");
+  authView.classList.add("hidden");
   homeScreen.classList.remove("hidden");
   document.querySelector("header").classList.remove("hidden");
   document.querySelector("footer").classList.remove("hidden");
@@ -246,11 +258,10 @@ function addGame(finalScore, user) {
 //     })
 //     .catch((error) => console.log(error));
 // }
-async function signup(name) {
+async function signup(formData) {
   const response = await fetch(BASE_API_URL + "/signup", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: new URLSearchParams(formData),
   });
 
   const data = await response.json();
@@ -263,11 +274,10 @@ async function signup(name) {
   userName = data.name;
 }
 
-async function login(name) {
+async function login(formData) {
   const response = await fetch(BASE_API_URL + "/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: new URLSearchParams(formData),
   });
 
   const data = await response.json();
@@ -282,13 +292,22 @@ async function login(name) {
 
 function updateWelcomeMessage() {
   const welcomeMsg = document.getElementById("welcome-msg");
+  const signupButton = document.getElementById("signup");
+  const loginButton = document.getElementById("login");
+  const logoutButton = document.getElementById("logout");
 
   if (userId && userName) {
     welcomeMsg.textContent = `Welcome, ${userName}!`;
     signMsg.textContent = "";
+    signupButton.classList.add("hidden");
+    loginButton.classList.add("hidden");
+    logoutButton.classList.remove("hidden");
   } else {
     welcomeMsg.textContent = "";
     signMsg.textContent = "Sign in to see stats";
+    signupButton.classList.remove("hidden");
+    loginButton.classList.remove("hidden");
+    logoutButton.classList.add("hidden");
   }
 }
 
@@ -297,7 +316,48 @@ function showLoading() {
   document.querySelector("header").classList.add("hidden");
   document.querySelector("footer").classList.add("hidden");
   document.getElementById("leaderboard").classList.add("hidden");
+  authView.classList.add("hidden");
   loadingScreen.classList.remove("hidden");
+}
+
+function setAuthFeedback(message, { success = false } = {}) {
+  authFeedback.textContent = message;
+  authFeedback.classList.toggle("success", success);
+}
+
+function updateAuthView() {
+  const isSignup = authMode === "signup";
+
+  authTitle.textContent = isSignup ? "Sign up" : "Log in";
+  authSubtitle.textContent = isSignup
+    ? "Create a StanGuessr username to save your best scores."
+    : "Enter your StanGuessr username to load your personal leaderboard.";
+  authSubmit.textContent = isSignup ? "Create account" : "Log in";
+  authPasswordInput.autocomplete = isSignup
+    ? "new-password"
+    : "current-password";
+  authSwitchText.textContent = isSignup
+    ? "Already have an account?"
+    : "Need an account?";
+  authSwitchButton.textContent = isSignup ? "Log in" : "Sign up";
+  authNameInput.value = "";
+  authPasswordInput.value = "";
+  setAuthFeedback("");
+}
+
+function showAuthView(mode) {
+  authMode = mode;
+  homeScreen.classList.add("hidden");
+  document.querySelector("header").classList.add("hidden");
+  document.querySelector("footer").classList.add("hidden");
+  document.getElementById("leaderboard").classList.add("hidden");
+  loadingScreen.classList.add("hidden");
+  gameView.classList.add("hidden");
+  resultsView.classList.add("hidden");
+  endScreen.classList.add("hidden");
+  authView.classList.remove("hidden");
+  updateAuthView();
+  authNameInput.focus();
 }
 
 function updateLeaderboardButtonText() {
@@ -918,32 +978,68 @@ function pullPersonalStats() {
 function setupAuthButtons() {
   const signupButton = document.getElementById("signup");
   const loginButton = document.getElementById("login");
+  const logoutButton = document.getElementById("logout");
+  const authBackButton = document.getElementById("auth-back-button");
 
-  signupButton.addEventListener("click", async () => {
-    const name = prompt("Choose a username:");
-    if (!name) return;
-
-    try {
-      await signup(name.trim());
-      updateWelcomeMessage();
-      pullPersonalStats();
-      alert("Account created.");
-    } catch (error) {
-      alert(error.message);
-    }
+  signupButton.addEventListener("click", () => showAuthView("signup"));
+  loginButton.addEventListener("click", () => showAuthView("login"));
+  logoutButton.addEventListener("click", () => {
+    userId = null;
+    userName = "";
+    updateWelcomeMessage();
+    pullPersonalStats();
+    showHome();
+  });
+  authBackButton.addEventListener("click", showHome);
+  authSwitchButton.addEventListener("click", () => {
+    authMode = authMode === "signup" ? "login" : "signup";
+    updateAuthView();
+    authNameInput.focus();
   });
 
-  loginButton.addEventListener("click", async () => {
-    const name = prompt("Enter your username:");
-    if (!name) return;
+  authForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const name = authNameInput.value.trim();
+    const password = authPasswordInput.value;
+    const formData = new FormData(authForm);
+
+    if (!name) {
+      setAuthFeedback("Enter a username.");
+      authNameInput.focus();
+      return;
+    }
+
+    if (!password) {
+      setAuthFeedback("Enter a password.");
+      authPasswordInput.focus();
+      return;
+    }
+
+    authSubmit.disabled = true;
+    setAuthFeedback(
+      authMode === "signup" ? "Creating account..." : "Logging in...",
+    );
 
     try {
-      await login(name.trim());
+      if (authMode === "signup") {
+        await signup(formData);
+        setAuthFeedback("Account created. Redirecting home...", {
+          success: true,
+        });
+      } else {
+        await login(formData);
+        setAuthFeedback("Login successful. Redirecting home...", {
+          success: true,
+        });
+      }
+
       updateWelcomeMessage();
       pullPersonalStats();
-      alert("Logged in.");
+      window.setTimeout(showHome, 400);
     } catch (error) {
-      alert(error.message);
+      setAuthFeedback(error.message || "Something went wrong.");
+    } finally {
+      authSubmit.disabled = false;
     }
   });
 }
