@@ -100,46 +100,17 @@ const stanfordLocations = [
     name: "Front of Stanford Medical Center",
   },
   { lat: 37.4328688, lng: -122.1711744, name: "Cantor" },
-  { lat: 37.4345298, lng: -122.1611227, name: "Stanford Stadium" },
-  { lat: 37.4283586, lng: -122.1748137, name: "Engineering Quad" },
-  { lat: 37.4348035, lng: -122.1680317, name: "Stanford Griffins" },
-  { lat: 37.4314613, lng: -122.1745986, name: "James H. Clark Center" },
-  {
-    lat: 37.433134,
-    lng: -122.1765402,
-    name: "Stanford Medical Center fountains",
-  },
-  {
-    lat: 37.4299936,
-    lng: -122.1572537,
-    name: "Stanford Beach Volleyball Stadium",
-  },
-  { lat: 37.4224638, lng: -122.1566591, name: "EVGR A" },
   {
     lat: 37.4239285,
     lng: -122.1658509,
     name: "In between Sally Ride and Casa Zapata",
   },
-  {
-    lat: 37.4242163,
-    lng: -122.178309,
-    name: "Governor's Corner Housing Center",
-  },
-  {
-    lat: 37.435877,
-    lng: -122.1711069,
-    name: "Stanford Mausoleum",
-  },
-  {
-    lat: 37.4236261,
-    lng: -122.173915,
-    name: "Denning House",
-  },
-  {
-    lat: 37.4298243,
-    lng: -122.1730244,
-    name: "Outside Gates Building",
-  },
+  { lat: 37.4436119, lng: -122.1721739, name: "Stanford Shopping Center" },
+  { lat: 37.4365144, lng: -122.1698481, name: "Mausoleum" },
+  { lat: 37.4299387, lng: -122.1669126, name: "Graduate School of Business South" },
+  { lat: 37.4304963, lng: -122.1536713, name: "IM South Fields" },
+  { lat: 37.4194846, lng: -122.1693579, name: "Synergy" },
+  
 ].map((location, index) => ({ id: index + 1, ...location }));
 
 app.get("/", (req, res) => {
