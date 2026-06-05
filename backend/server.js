@@ -110,6 +110,12 @@ const stanfordLocations = [
   { lat: 37.4299387, lng: -122.1669126, name: "Graduate School of Business South" },
   { lat: 37.4304963, lng: -122.1536713, name: "IM South Fields" },
   { lat: 37.4194846, lng: -122.1693579, name: "Synergy" },
+  { lat: 37.4249, lng: -122.176292, name: "Front of Lakeside Dining" },
+  { lat: 37.4261555, lng: -122.1771634, name: "Ricker Dining" },
+  { lat: 37.4268217, lng: -122.1773863, name: "Entrance to AOERC Gym" },
+  { lat: 37.4233601, lng: -122.1648701, name: "Wilbur Field" },
+  { lat: 37.4413715, lng: -122.1686334, name: "Hoover Medical Campus" },
+
   
 ].map((location, index) => ({ id: index + 1, ...location }));
 
