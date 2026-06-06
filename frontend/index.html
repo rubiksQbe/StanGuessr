@@ -17,19 +17,32 @@
   <body>
     <header aria-labelledby="site-title">
       <section class="nav-bar" aria-labelledby="site-title">
-        <h1 id="site-title" class="logo"><img src="./media/stanguessr.png" alt="StanGuessr logo" class="logo-icon" />StanGuessr</h1>
+        <h1 id="site-title" class="logo">
+          <img
+            src="./media/stanguessr.png"
+            alt="StanGuessr logo"
+            class="logo-icon"
+          />StanGuessr
+        </h1>
         <p id="welcome-msg" aria-live="polite" aria-atomic="true"></p>
         <section id="nav-buttons" aria-label="Account actions">
           <button id="signup" class="nav-button">Sign up</button>
           <button id="login" class="nav-button">Login</button>
-          <button id="logout" class="nav-button hidden" type="button">Log out</button>
+          <button id="logout" class="nav-button hidden" type="button">
+            Log out
+          </button>
         </section>
       </section>
     </header>
 
     <main aria-labelledby="hero-heading" aria-describedby="hero-description">
       <!-- Landing Page -->
-      <div class="hero" role="region" aria-labelledby="hero-heading" aria-describedby="hero-description">
+      <div
+        class="hero"
+        role="region"
+        aria-labelledby="hero-heading"
+        aria-describedby="hero-description"
+      >
         <h2 id="hero-heading" class="greeting-message">Explore Stanford</h2>
         <h3 id="hero-description" class="instructions">
           Get dropped somewhere on campus and figure out where you are!
@@ -85,7 +98,8 @@
               aria-describedby="auth-name-help auth-feedback"
             />
             <p id="auth-name-help" class="auth-help">
-              Letters, symbols, and numbers are okay. Usernames are matched by name.
+              Letters, symbols, and numbers are okay. Usernames are matched by
+              name.
             </p>
             <p
               id="auth-feedback"
@@ -94,12 +108,18 @@
               aria-live="polite"
               aria-atomic="true"
             ></p>
-            <button id="auth-submit" class="auth-submit" type="submit">Create account</button>
+            <button id="auth-submit" class="auth-submit" type="submit">
+              Create account
+            </button>
           </form>
 
           <p id="auth-switch-copy" class="auth-switch-copy">
             <span id="auth-switch-text">Already have an account?</span>
-            <button id="auth-switch-button" class="auth-switch-button" type="button">
+            <button
+              id="auth-switch-button"
+              class="auth-switch-button"
+              type="button"
+            >
               Log in
             </button>
           </p>
@@ -111,13 +131,27 @@
     <section id="leaderboard" aria-labelledby="leaderboard-heading">
       <h2 id="leaderboard-heading" class="sr-only">Leaderboard</h2>
       <div class="leaderboard-container">
-        <div class="leaderboard-card" role="region" aria-labelledby="global-leaderboard-heading">
+        <div
+          class="leaderboard-card"
+          role="region"
+          aria-labelledby="global-leaderboard-heading"
+        >
           <h3 id="global-leaderboard-heading">GLOBAL</h3>
           <ol id="global-stats" class="leaderboard-list"></ol>
         </div>
-        <div class="leaderboard-card" role="region" aria-labelledby="personal-leaderboard-heading" aria-describedby="signin-msg">
+        <div
+          class="leaderboard-card"
+          role="region"
+          aria-labelledby="personal-leaderboard-heading"
+          aria-describedby="signin-msg"
+        >
           <h3 id="personal-leaderboard-heading">PERSONAL</h3>
-          <div id="signin-msg"><button type="button" id="signin-link" class="signin-link">Login</button> to see stats</div>
+          <div id="signin-msg">
+            <button type="button" id="signin-link" class="signin-link">
+              Login
+            </button>
+            to see stats
+          </div>
           <ol id="personal-stats" class="leaderboard-list"></ol>
         </div>
       </div>
@@ -195,9 +229,16 @@
     >
       <h2 id="game-view-heading" class="sr-only">Game round</h2>
       <p id="game-view-description" class="sr-only">
-        Explore the street view, then open the campus map to place your guess before the timer ends.
+        Explore the street view, then open the campus map to place your guess
+        before the timer ends.
       </p>
-      <div id="game-timer" role="timer" aria-live="off" aria-atomic="true" aria-label="Time remaining">
+      <div
+        id="game-timer"
+        role="timer"
+        aria-live="off"
+        aria-atomic="true"
+        aria-label="Time remaining"
+      >
         <span id="timer-display">01:00</span>
       </div>
       <div
@@ -208,7 +249,8 @@
       >
         <h3 id="street-view-heading" class="sr-only">Street view panorama</h3>
         <p id="street-view-description" class="sr-only">
-          Use this panorama to inspect the current campus location before guessing on the map.
+          Use this panorama to inspect the current campus location before
+          guessing on the map.
         </p>
       </div>
       <div
@@ -219,9 +261,13 @@
       >
         <h3 id="guess-map-heading" class="sr-only">Guess map</h3>
         <p id="guess-map-description" class="sr-only">
-          Open the map, place a pin on the Stanford campus, then submit your guess.
+          Open the map, place a pin on the Stanford campus, then submit your
+          guess.
         </p>
-        <div id="guess-map" aria-label="Campus map for placing your guess"></div>
+        <div
+          id="guess-map"
+          aria-label="Campus map for placing your guess"
+        ></div>
         <button
           id="guess-button"
           type="button"
@@ -243,16 +289,30 @@
     >
       <h2 id="results-heading" class="sr-only">Round results</h2>
       <p id="results-description" class="sr-only">
-        Review the distance between your guess and the actual location, along with your round score.
+        Review the distance between your guess and the actual location, along
+        with your round score.
       </p>
-      <div id="results-map" aria-label="Map showing your guess and the actual location"></div>
+      <div
+        id="results-map"
+        aria-label="Map showing your guess and the actual location"
+      ></div>
       <div class="results-footer">
-        <div class="results-distance-section" aria-live="polite" aria-atomic="true">
+        <div
+          class="results-distance-section"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span class="results-distance-value">0</span>
           <span class="results-distance-label">FROM LOCATION</span>
         </div>
-        <button id="results-next-btn" class="results-next-button" type="button">NEXT</button>
-        <div class="results-score-section" aria-live="polite" aria-atomic="true">
+        <button id="results-next-btn" class="results-next-button" type="button">
+          NEXT
+        </button>
+        <div
+          class="results-score-section"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span class="results-score-value">0</span>
           <span class="results-score-label">OF 5,000 POINTS</span>
         </div>
@@ -266,10 +326,11 @@
       aria-labelledby="summary-heading"
       aria-describedby="summary-description"
     >
-    <!-- Screen read message -->
+      <!-- Screen read message -->
       <h2 id="summary-heading" class="sr-only">Game summary</h2>
       <p id="summary-description" class="sr-only">
-        Review your final score, all-time rank, and the map of each round before returning home or playing again.
+        Review your final score, all-time rank, and the map of each round before
+        returning home or playing again.
       </p>
 
       <!-- End Summary Leaderboard -->
@@ -283,30 +344,58 @@
         </div>
         <div id="end-leaderboard" class="hidden">
           <div class="end-lead-header">
-            <img src="./media/stanford-seal.png" alt="Stanford Seal">
+            <img src="./media/stanford-seal.png" alt="Stanford Seal" />
             <h3>Global</h3>
           </div>
           <ol id="end-leaderboard-list"></ol>
           <div class="end-lead-header end-lead-personal-header">
             <h3>Personal</h3>
           </div>
-          <div id="end-signin-msg"><button type="button" id="end-signin-link" class="signin-link">Login</button> to see stats</div>
+          <div id="end-signin-msg">
+            <button type="button" id="end-signin-link" class="signin-link">
+              Login
+            </button>
+            to see stats
+          </div>
           <ol id="end-personal-list"></ol>
         </div>
       </aside>
 
       <!-- Guess Summary Map -->
-      <div id="summary-map" aria-label="Summary map of all round guesses and actual locations"></div>
+      <div
+        id="summary-map"
+        aria-label="Summary map of all round guesses and actual locations"
+      ></div>
       <div class="results-footer summary-footer">
-        <div class="results-distance-section" aria-live="polite" aria-atomic="true">
+        <div
+          class="results-distance-section"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span class="results-distance-value" id="summary-rank">--</span>
           <span class="results-distance-label">GLOBAL RANKING</span>
         </div>
         <div class="summary-actions">
-          <button id="summary-home-btn" class="results-next-button secondary" type="button">HOME</button>
-          <button id="summary-next-btn" class="results-next-button" type="button">PLAY AGAIN</button>
+          <button
+            id="summary-home-btn"
+            class="results-next-button secondary"
+            type="button"
+          >
+            HOME
+          </button>
+          <button
+            id="summary-next-btn"
+            class="results-next-button"
+            type="button"
+          >
+            PLAY AGAIN
+          </button>
         </div>
-        <div class="results-score-section" aria-live="polite" aria-atomic="true">
+        <div
+          class="results-score-section"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span class="results-score-value" id="final-score">0</span>
           <span class="results-score-label">OF 25,000 POINTS</span>
         </div>

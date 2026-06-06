@@ -569,7 +569,7 @@ function showResults(guessPosition, actualPosition, score, distanceMeters) {
   distanceElement.textContent =
     guessPosition && distanceMeters !== null
       ? formatDistance(distanceMeters)
-      : "No guess";
+      : "N/A";
   scoreElement.textContent = score.toLocaleString();
 
   // Hide game view, show results view
