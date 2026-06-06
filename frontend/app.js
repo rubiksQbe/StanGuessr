@@ -47,6 +47,9 @@ let userId = null;
 let userName = "";
 let authMode = "signup";
 let authOrigin = "home";
+// Score of the most recently finished game, kept so it can be claimed if the
+// player logs in / signs up on the end screen.
+let pendingEndScore = null;
 
 /* Round tracking. */
 const TOTAL_ROUNDS = 5;
@@ -180,14 +183,6 @@ async function startRound() {
 async function endGame() {
   const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0);
 
-  if (userId) {
-    try {
-      await addGame(totalScore, userId);
-    } catch (error) {
-      console.error("Failed to save game before refreshing rankings:", error);
-    }
-  }
-
   document.querySelector("#final-score").textContent =
     totalScore.toLocaleString();
   updateSummaryRank(totalScore);
@@ -197,7 +192,37 @@ async function endGame() {
   endScreen.classList.remove("hidden");
   renderSummaryMap();
   pullGlobalStats(end_lead_list);
-  pullPersonalStats(end_personal_list, end_signin_msg);
+
+  // Remember this game's score so it can be claimed if the player authenticates
+  // on the end screen.
+  pendingEndScore = totalScore;
+
+  if (userId) {
+    renderEndPersonalStats(totalScore);
+  } else {
+    pullPersonalStats(end_personal_list, end_signin_msg);
+  }
+}
+
+/* Save the finished game, then re-render the personal leaderboard with the
+   just-played score highlighted (and flagged when it's a new personal best). */
+async function renderEndPersonalStats(totalScore) {
+  // Save first so the new score is included when we re-fetch the top 5.
+  const savedGame = await addGame(totalScore, userId);
+  if (!savedGame) {
+    pullPersonalStats(end_personal_list, end_signin_msg);
+    return;
+  }
+
+  pendingEndScore = null;
+
+  pullGlobalStats(end_lead_list, {
+    highlightScore: totalScore,
+    highlightName: userName,
+  });
+  pullPersonalStats(end_personal_list, end_signin_msg, {
+    highlightScore: totalScore,
+  });
 }
 
 // End game leaderboard buttons
@@ -277,18 +302,24 @@ document.querySelector("#summary-home-btn").addEventListener("click", showHome);
 
 /* Add game to database. */
 async function addGame(finalScore, user) {
-  const response = await fetch(BASE_API_URL + "/end-game", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userid: user, score: finalScore }),
-  });
-  const data = await response.json();
+  try {
+    const response = await fetch(BASE_API_URL + "/end-game", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userid: user, score: finalScore }),
+    });
+    const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to save game.");
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to save game.");
+    }
+
+    console.log("Successfully added game:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to save game:", error);
+    return null;
   }
-
-  return data;
 }
 
 /* Add user to database. */
@@ -464,6 +495,7 @@ function resetGame() {
   roundResults = [];
   usedLocationIds = [];
   currentLocation = null;
+  pendingEndScore = null;
   endScreen.classList.add("hidden");
   updateRoundTracker();
 }
@@ -992,14 +1024,25 @@ function toggleLeadboard() {
 }
 
 /* Populate leaderboard stats. */
-function pullGlobalStats(elem) {
+function pullGlobalStats(elem, opts = {}) {
+  const { highlightScore = null, highlightName = "" } = opts;
   fetch(BASE_API_URL + `/leaderboard/${limit}`)
     .then((response) => response.json())
     .then((data) => {
       elem.replaceChildren();
+      let highlighted = false;
       data.forEach((entry, i) => {
         let li = document.createElement("li");
         li.textContent = `${data[i].name} — ${data[i].score} pts`;
+        if (
+          !highlighted &&
+          highlightScore !== null &&
+          data[i].score === highlightScore &&
+          (!highlightName || data[i].name === highlightName)
+        ) {
+          highlighted = true;
+          li.classList.add("score-highlight-row");
+        }
         elem.appendChild(li);
       });
     })
@@ -1007,7 +1050,8 @@ function pullGlobalStats(elem) {
 }
 
 /* Populate personal stats. */
-function pullPersonalStats(listElem = personalStats, msgElem = signMsg) {
+function pullPersonalStats(listElem = personalStats, msgElem = signMsg, opts = {}) {
+  const { highlightScore = null } = opts;
   listElem.replaceChildren();
   // not signed in.
   if (!userId) {
@@ -1018,9 +1062,19 @@ function pullPersonalStats(listElem = personalStats, msgElem = signMsg) {
   fetch(BASE_API_URL + `/users/${userId}/scores/${limit}`)
     .then((response) => response.json())
     .then((data) => {
+      let highlighted = false;
       data.forEach((entry, i) => {
         let li = document.createElement("li");
         li.textContent = `${userName} — ${data[i].score} pts`;
+        // Highlight only the first row matching the just-played score.
+        if (
+          !highlighted &&
+          highlightScore !== null &&
+          data[i].score === highlightScore
+        ) {
+          highlighted = true;
+          li.classList.add("score-highlight-row");
+        }
         listElem.appendChild(li);
       });
       msgElem.classList.add("hidden");
@@ -1086,7 +1140,13 @@ function setupAuthButtons() {
 
       updateWelcomeMessage();
       pullPersonalStats();
-      pullPersonalStats(end_personal_list, end_signin_msg);
+      if (authOrigin === "end" && pendingEndScore !== null) {
+        // Claim the just-played anonymous game for this account and show
+        // whether it was a personal best.
+        await renderEndPersonalStats(pendingEndScore);
+      } else {
+        pullPersonalStats(end_personal_list, end_signin_msg);
+      }
       window.setTimeout(returnFromAuth, 400);
     } catch (error) {
       setAuthFeedback(error.message || "Something went wrong.");
