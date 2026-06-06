@@ -8,8 +8,11 @@ Made by Carter, Eric, Tina, and Andrea for CS146J
 
 1. Go to [Google Maps Platform | Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/demo-key) and click "Get a Demo Key".\*
 2. Create a `.env` file in the `backend` folder and add the line `GOOGLE_MAPS_API_KEY=[YOUR_MAPS_DEMO_KEY]`.
-3. Open your terminal, navigate to the `backend` folder, and run `npm install` then `npm start`.
-4. Open [http://localhost:3001/](http://localhost:3001/) in your browser. The Express server now serves the frontend, so you no longer open `index.html` directly.
+3. From the project root, install the backend dependencies with `npm install --prefix backend`.
+4. Start the app with `node backend/server.js`.
+5. Open [http://localhost:3001/](http://localhost:3001/) in your browser.
+
+Do **not** open `frontend/index.html` with Live Server. The frontend sends API requests to the same origin, so opening it on Live Server's port prevents those requests from reaching the backend on port `3001`. Express serves both the frontend and API at the URL above.
 
 \*Note: You may need to link a billing account to the project in Google Cloud to remove watermarks and negative imaging. This should not charge you though.
 

@@ -107,9 +107,15 @@ const stanfordLocations = [
   { lat: 37.4331935, lng: -122.1693090, name: "Stone River" },
   { lat: 37.4279659, lng: -122.1743686, name: "Huang Hallway" },
   { lat: 37.4341405, lng: -122.1681862, name: "Palm Dr Stop Sign" },
+  { lat: 37.4243273, lng: -122.1741273, name: "Roble Hall" },
+  { lat: 37.4243273, lng: -122.1741273, name: "Manzanita Field" },
+  { lat: 37.4256121, lng: -122.1615635, name: "Casper" },
+  { lat: 37.4264534, lng: -122.172541, name: "Branner Earth Science Library" },
+  { lat: 37.4320604, lng: -122.1620139, name: "Cobb Track and Angell Field" },
+  { lat: 37.4298243, lng: -122.1730244, name: "Gates Computer Science Building" },
 ].map((location, index) => ({ id: index + 1, ...location }));
 
-app.get("/healthz", (req, res) => {
+app.get("/", (req, res) => {
   res.json({ status: "ok", message: "StanGuessr API is running" });
 });
 
