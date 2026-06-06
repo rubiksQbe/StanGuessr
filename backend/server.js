@@ -214,17 +214,12 @@ app.post("/api/users", (req, res) => {
 // Creating a user's account
 app.post("/api/signup", (req, res) => {
   const name = req.body.name?.trim();
-  const password = req.body.password?.trim();
 
   if (!name) {
     return res.status(400).json({ error: "Name is required" });
   }
 
-  if (!password) {
-    return res.status(400).json({ error: "Password is required" });
-  }
-
-  const newUser = createUser(name, password);
+  const newUser = createUser(name);
 
   if (!newUser) {
     return res.status(409).json({ error: "Name already taken" });
@@ -236,20 +231,15 @@ app.post("/api/signup", (req, res) => {
 // Logging into a user's account
 app.post("/api/login", (req, res) => {
   const name = req.body.name?.trim();
-  const password = req.body.password?.trim();
 
   if (!name) {
     return res.status(400).json({ error: "Name is required" });
   }
 
-  if (!password) {
-    return res.status(400).json({ error: "Password is required" });
-  }
-
-  const user = verifyUserCredentials(name, password);
+  const user = verifyUserCredentials(name);
 
   if (!user) {
-    return res.status(401).json({ error: "Incorrect username or password" });
+    return res.status(401).json({ error: "Username not found" });
   }
 
   res.json(user);
