@@ -13,7 +13,6 @@ const resultsNextButton = document.getElementById("results-next-btn");
 const authView = document.getElementById("auth-view");
 const authForm = document.getElementById("auth-form");
 const authNameInput = document.getElementById("auth-name");
-const authPasswordInput = document.getElementById("auth-password");
 const authTitle = document.getElementById("auth-title");
 const authSubtitle = document.getElementById("auth-subtitle");
 const authFeedback = document.getElementById("auth-feedback");
@@ -172,11 +171,15 @@ async function startRound() {
   }
 }
 
-function endGame() {
+async function endGame() {
   const totalScore = roundScores.reduce((sum, score) => sum + (score || 0), 0);
-  // Write score to db
+
   if (userId) {
-    addGame(totalScore, userId);
+    try {
+      await addGame(totalScore, userId);
+    } catch (error) {
+      console.error("Failed to save game before refreshing rankings:", error);
+    }
   }
 
   document.querySelector("#final-score").textContent =
@@ -267,17 +270,19 @@ document.querySelector("#summary-next-btn").addEventListener("click", () => {
 document.querySelector("#summary-home-btn").addEventListener("click", showHome);
 
 /* Add game to database. */
-function addGame(finalScore, user) {
-  fetch(BASE_API_URL + "/end-game", {
+async function addGame(finalScore, user) {
+  const response = await fetch(BASE_API_URL + "/end-game", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userid: user, score: finalScore }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Successfully added game:", data);
-    })
-    .catch((error) => console.log(error));
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to save game.");
+  }
+
+  return data;
 }
 
 /* Add user to database. */
@@ -370,15 +375,11 @@ function updateAuthView() {
     ? "Create a StanGuessr username to save your best scores."
     : "Enter your StanGuessr username to load your personal leaderboard.";
   authSubmit.textContent = isSignup ? "Create account" : "Log in";
-  authPasswordInput.autocomplete = isSignup
-    ? "new-password"
-    : "current-password";
   authSwitchText.textContent = isSignup
     ? "Already have an account?"
     : "Need an account?";
   authSwitchButton.textContent = isSignup ? "Log in" : "Sign up";
   authNameInput.value = "";
-  authPasswordInput.value = "";
   setAuthFeedback("");
 }
 
@@ -1051,18 +1052,11 @@ function setupAuthButtons() {
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const name = authNameInput.value.trim();
-    const password = authPasswordInput.value;
     const formData = new FormData(authForm);
 
     if (!name) {
       setAuthFeedback("Enter a username.");
       authNameInput.focus();
-      return;
-    }
-
-    if (!password) {
-      setAuthFeedback("Enter a password.");
-      authPasswordInput.focus();
       return;
     }
 
