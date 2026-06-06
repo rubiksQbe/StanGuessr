@@ -25,6 +25,8 @@ const authFeedback = document.getElementById("auth-feedback");
 const authSubmit = document.getElementById("auth-submit");
 const authSwitchText = document.getElementById("auth-switch-text");
 const authSwitchButton = document.getElementById("auth-switch-button");
+const authNameConfirm = document.getElementById("auth-name-confirm");
+const authConfirmGroup = document.getElementById("auth-confirm-group");
 
 const tracker = document.getElementById("round-tracker");
 
@@ -417,6 +419,8 @@ function updateAuthView() {
     : "Need an account?";
   authSwitchButton.textContent = isSignup ? "Log in" : "Sign up";
   authNameInput.value = "";
+  authNameConfirm.value = "";
+  authConfirmGroup.classList.toggle("hidden", !isSignup);
   setAuthFeedback("");
 }
 
@@ -1112,11 +1116,18 @@ function setupAuthButtons() {
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const name = authNameInput.value.trim();
+    const confirmName = authNameConfirm.value.trim();
     const formData = new FormData(authForm);
 
     if (!name) {
       setAuthFeedback("Enter a username.");
       authNameInput.focus();
+      return;
+    }
+
+    if (authMode === "signup" && name !== confirmName) {
+      setAuthFeedback("Usernames do not match.");
+      authNameConfirm.focus();
       return;
     }
 

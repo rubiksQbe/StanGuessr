@@ -362,6 +362,13 @@ ol li {
   box-shadow: 0 0 0 0.25rem rgba(140, 21, 21, 0.12);
 }
 
+#auth-confirm-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
 .auth-help {
   margin: 0;
   color: #6d6862;
