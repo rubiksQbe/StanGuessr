@@ -193,6 +193,8 @@ function endGame() {
 
 // End game leaderboard buttons
 const drop_lead_btn = document.querySelector("#drop-lead-btn");
+const hide_lead_btn = document.querySelector("#hide-lead-btn");
+const lead_bar = document.querySelector("#lead-bar");
 const end_leaderboard = document.querySelector("#end-leaderboard");
 const end_personal_list = document.querySelector("#end-personal-list");
 const end_signin_msg = document.querySelector("#end-signin-msg");
@@ -201,6 +203,22 @@ const end_signin_msg = document.querySelector("#end-signin-msg");
 drop_lead_btn.addEventListener("click", () => {
   const collapsed = end_leaderboard.classList.toggle("hidden");
   drop_lead_btn.textContent = collapsed ? "+" : "-";
+});
+
+// Hide end leaderboard
+hide_lead_btn.addEventListener("click", () => {
+  const rotated = lead_bar.classList.toggle("lead-bar-rotated");
+  if (rotated) {
+    hide_lead_btn.textContent = "▴";
+    drop_lead_btn.classList.add("hidden");
+    end_leaderboard.classList.add("hidden");
+  } else {
+    hide_lead_btn.textContent = "◂";
+    drop_lead_btn.classList.remove("hidden");
+    if (drop_lead_btn.textContent === "-") {
+      end_leaderboard.classList.remove("hidden");
+    }
+  }
 });
 
 async function updateSummaryRank(totalScore) {
