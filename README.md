@@ -4,6 +4,8 @@ A Stanford location guessing game inspired by [GeoGuessr](https://www.geoguessr.
 
 Made by Carter, Eric, Tina, and Andrea
 
+[Demo Video](https://www.youtube.com/watch?v=1CnhZU4920o)
+
 ## Running locally
 
 1. Go to [Google Maps Platform | Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/demo-key) and click "Get a Demo Key".\*
